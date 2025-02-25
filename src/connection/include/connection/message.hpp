@@ -1,0 +1,58 @@
+#pragma once
+
+#include <cstring>
+#include <utility/math.hpp>
+
+namespace connection {
+
+struct message_header {
+   private:
+    natural_32_bit size = 0;
+
+    friend struct message;
+};
+
+struct message {
+    natural_32_bit size();
+
+    void clear();
+    bool empty();
+    bool can_accept_bytes(size_t n) const;
+    bool can_deliver_bytes(size_t n) const;
+    void accept_bytes(const void* src, size_t n);
+    void deliver_bytes(void* dest, size_t n);
+
+    bool exhausted() const;
+
+    template <typename T,
+              typename std::enable_if<std::is_trivially_copyable<T>::value,
+                                      int>::type = 0>
+    message& operator<<(const T& src)
+    {
+        accept_bytes(&src, sizeof(T));
+        return *this;
+    }
+
+    message& operator<<(const std::string& src);
+
+    template <typename T,
+              typename std::enable_if<std::is_trivially_copyable<T>::value,
+                                      int>::type = 0>
+    message& operator>>(T& dest)
+    {
+        deliver_bytes(&dest, sizeof(T));
+        return *this;
+    }
+
+    message& operator>>(std::string& dest);
+
+    message_header header;
+
+   private:
+    vecu8 bytes;
+    natural_32_bit cursor = 0;
+
+    friend struct connection;
+};
+
+}  // namespace connection
