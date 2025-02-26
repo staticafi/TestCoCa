@@ -1,5 +1,6 @@
 include_directories(
     "${PROJECT_SOURCE_DIR}/src/instrumentation/include"
+    "${PROJECT_SOURCE_DIR}/src/instrumenter/include"
     "${PROJECT_SOURCE_DIR}/src/connection/include"
     "${PROJECT_SOURCE_DIR}/src/iomodels/include"
     "${PROJECT_SOURCE_DIR}/src/utility/include"
@@ -22,3 +23,6 @@ add_subdirectory(./instrumentation)
 
 message("       client")
 add_subdirectory(./client)
+
+message("       instrumenter")
+add_subdirectory(./instrumenter)

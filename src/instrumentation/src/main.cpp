@@ -3,7 +3,7 @@
 #include <iostream>
 
 extern "C" {
-void __target_original_main();
+void __qmi_original_main();
 }
 
 namespace instrumentation {
@@ -27,19 +27,20 @@ in case of a crash */
         std::cerr << "Failed to set dumpable flag\n";
     }
 #endif
-
+    std::puts("Before shared memory open or create");
     sbt_fizzer_target->shared_memory.open_or_create();
     sbt_fizzer_target->shared_memory.map_region();
 
     sbt_fizzer_target->load_stdin();
 
+    std::puts("After shared memory open or create");
     sbt_fizzer_target->shared_memory.clear();
 
     // Reserve the first two bytes for termination
     sbt_fizzer_target->shared_memory << data_record_id::invalid
                                      << data_record_id::invalid;
 
-    __target_original_main();
+    __qmi_original_main();
 
     sbt_fizzer_target->shared_memory.set_termination(
         target_termination::normal);

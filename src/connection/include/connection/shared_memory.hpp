@@ -11,7 +11,7 @@
 namespace connection {
 
 class shared_memory {
-    inline static const char* segment_name = "QM2C_Shared_Memory";
+    inline static const char* segment_name = "shared_memory";
 
     boost::interprocess::shared_memory_object shm;
     boost::interprocess::mapped_region region;

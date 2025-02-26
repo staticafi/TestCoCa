@@ -11,6 +11,8 @@ add_library(${THIS_TARGET_NAME}
 
     ./src/instrumentation.cpp
 
+    ./src/verifier_functions.cpp
+
     ./src/main.cpp
     )
 
