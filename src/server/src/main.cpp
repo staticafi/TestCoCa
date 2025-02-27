@@ -1,15 +1,17 @@
-#include <client/program_options.hpp>
+#include <server/program_info.hpp>
+#include <server/program_options.hpp>
 #include <utility/config.hpp>
 #include <utility/timeprof.hpp>
 #include <utility/log.hpp>
-#include <client/program_info.hpp>
-
 #include <filesystem>
 #include <fstream>
 #include <stdexcept>
 #include <iostream>
+//#if COMPILER() == COMPILER_VC()
+//#   pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup") 
+//#endif
 
-extern void run();
+extern void run(int argc, char* argv[]);
 
 #if BUILD_RELEASE() == 1
 static void save_crash_report(std::string const& crash_message)
@@ -20,11 +22,13 @@ static void save_crash_report(std::string const& crash_message)
 }
 #endif
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
 #if BUILD_RELEASE() == 1
     try
 #endif
     {
+        LOG_INITIALISE(get_program_name(), LSL_INFO);
         initialise_program_options(argc,argv);
         if (get_program_options()->helpMode())
             std::cout << get_program_options();
@@ -32,7 +36,8 @@ int main(int argc, char* argv[]) {
             std::cout << get_program_version() << "\n";
         else
         {
-            run();
+            run(argc,argv);
+            TMPROF_PRINT_TO_FILE(get_program_name(),true);
         }
     }
 #if BUILD_RELEASE() == 1

@@ -2,11 +2,13 @@
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-std=gnu++20",
       "-c",
       "-o",
       "CMakeFiles/utility.dir/src/bit_count.cpp.o",
@@ -19,11 +21,13 @@
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-std=gnu++20",
       "-c",
       "-o",
       "CMakeFiles/utility.dir/src/bits_reference.cpp.o",
@@ -36,11 +40,13 @@
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-std=gnu++20",
       "-c",
       "-o",
       "CMakeFiles/utility.dir/src/checked_number_operations.cpp.o",
@@ -53,11 +59,13 @@
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-std=gnu++20",
       "-c",
       "-o",
       "CMakeFiles/utility.dir/src/fail_message.cpp.o",
@@ -70,11 +78,13 @@
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-std=gnu++20",
       "-c",
       "-o",
       "CMakeFiles/utility.dir/src/log.cpp.o",
@@ -87,11 +97,13 @@
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-std=gnu++20",
       "-c",
       "-o",
       "CMakeFiles/utility.dir/src/math.cpp.o",
@@ -104,11 +116,13 @@
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-std=gnu++20",
       "-c",
       "-o",
       "CMakeFiles/utility.dir/src/program_options_base.cpp.o",
@@ -121,11 +135,13 @@
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-std=gnu++20",
       "-c",
       "-o",
       "CMakeFiles/utility.dir/src/random.cpp.o",
@@ -138,11 +154,13 @@
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-std=gnu++20",
       "-c",
       "-o",
       "CMakeFiles/utility.dir/src/sparse_data_types.cpp.o",
@@ -155,11 +173,13 @@
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-std=gnu++20",
       "-c",
       "-o",
       "CMakeFiles/utility.dir/src/timeprof.cpp.o",
@@ -172,11 +192,13 @@
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-std=gnu++20",
       "-c",
       "-o",
       "CMakeFiles/utility.dir/src/timestamp.cpp.o",
@@ -189,96 +211,13 @@
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
-      "-c",
-      "-o",
-      "CMakeFiles/instrumentation.dir/src/instrumentation_types.cpp.o",
-      "/home/martin/school/bac/qm2c/src/instrumentation/src/instrumentation_types.cpp"
-    ],
-    "directory": "/home/martin/school/bac/qm2c/build/src/instrumentation",
-    "file": "/home/martin/school/bac/qm2c/src/instrumentation/src/instrumentation_types.cpp",
-    "output": "/home/martin/school/bac/qm2c/build/src/instrumentation/CMakeFiles/instrumentation.dir/src/instrumentation_types.cpp.o"
-  },
-  {
-    "arguments": [
-      "/usr/bin/c++",
       "-I/home/martin/school/bac/qm2c/src/utility/include",
-      "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
-      "-I/home/martin/school/bac/qm2c/src/connection/include",
-      "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
-      "-c",
-      "-o",
-      "CMakeFiles/instrumentation.dir/src/fuzz_target.cpp.o",
-      "/home/martin/school/bac/qm2c/src/instrumentation/src/fuzz_target.cpp"
-    ],
-    "directory": "/home/martin/school/bac/qm2c/build/src/instrumentation",
-    "file": "/home/martin/school/bac/qm2c/src/instrumentation/src/fuzz_target.cpp",
-    "output": "/home/martin/school/bac/qm2c/build/src/instrumentation/CMakeFiles/instrumentation.dir/src/fuzz_target.cpp.o"
-  },
-  {
-    "arguments": [
-      "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
-      "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
-      "-I/home/martin/school/bac/qm2c/src/connection/include",
-      "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
-      "-c",
-      "-o",
-      "CMakeFiles/instrumentation.dir/src/instrumentation.cpp.o",
-      "/home/martin/school/bac/qm2c/src/instrumentation/src/instrumentation.cpp"
-    ],
-    "directory": "/home/martin/school/bac/qm2c/build/src/instrumentation",
-    "file": "/home/martin/school/bac/qm2c/src/instrumentation/src/instrumentation.cpp",
-    "output": "/home/martin/school/bac/qm2c/build/src/instrumentation/CMakeFiles/instrumentation.dir/src/instrumentation.cpp.o"
-  },
-  {
-    "arguments": [
-      "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
-      "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
-      "-I/home/martin/school/bac/qm2c/src/connection/include",
-      "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
-      "-c",
-      "-o",
-      "CMakeFiles/instrumentation.dir/src/verifier_functions.cpp.o",
-      "/home/martin/school/bac/qm2c/src/instrumentation/src/verifier_functions.cpp"
-    ],
-    "directory": "/home/martin/school/bac/qm2c/build/src/instrumentation",
-    "file": "/home/martin/school/bac/qm2c/src/instrumentation/src/verifier_functions.cpp",
-    "output": "/home/martin/school/bac/qm2c/build/src/instrumentation/CMakeFiles/instrumentation.dir/src/verifier_functions.cpp.o"
-  },
-  {
-    "arguments": [
-      "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
-      "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
-      "-I/home/martin/school/bac/qm2c/src/connection/include",
-      "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
-      "-c",
-      "-o",
-      "CMakeFiles/instrumentation.dir/src/main.cpp.o",
-      "/home/martin/school/bac/qm2c/src/instrumentation/src/main.cpp"
-    ],
-    "directory": "/home/martin/school/bac/qm2c/build/src/instrumentation",
-    "file": "/home/martin/school/bac/qm2c/src/instrumentation/src/main.cpp",
-    "output": "/home/martin/school/bac/qm2c/build/src/instrumentation/CMakeFiles/instrumentation.dir/src/main.cpp.o"
-  },
-  {
-    "arguments": [
-      "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
-      "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
-      "-I/home/martin/school/bac/qm2c/src/connection/include",
-      "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-std=gnu++20",
       "-c",
       "-o",
       "CMakeFiles/iomodels.dir/src/iomanager.cpp.o",
@@ -291,11 +230,13 @@
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-std=gnu++20",
       "-c",
       "-o",
       "CMakeFiles/iomodels.dir/src/stdin_replay_bytes_then_repeat_byte.cpp.o",
@@ -308,11 +249,13 @@
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-std=gnu++20",
       "-c",
       "-o",
       "CMakeFiles/iomodels.dir/src/models_map.cpp.o",
@@ -325,11 +268,13 @@
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-std=gnu++20",
       "-c",
       "-o",
       "CMakeFiles/iomodels.dir/src/stdout_void.cpp.o",
@@ -342,11 +287,13 @@
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-std=gnu++20",
       "-c",
       "-o",
       "CMakeFiles/iomodels.dir/src/configuration.cpp.o",
@@ -359,48 +306,14 @@
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
-      "-Wno-deprecated",
-      "-c",
-      "-o",
-      "CMakeFiles/connection.dir/src/server.cpp.o",
-      "/home/martin/school/bac/qm2c/src/connection/src/server.cpp"
-    ],
-    "directory": "/home/martin/school/bac/qm2c/build/src/connection",
-    "file": "/home/martin/school/bac/qm2c/src/connection/src/server.cpp",
-    "output": "/home/martin/school/bac/qm2c/build/src/connection/CMakeFiles/connection.dir/src/server.cpp.o"
-  },
-  {
-    "arguments": [
-      "/usr/bin/c++",
       "-I/home/martin/school/bac/qm2c/src/utility/include",
-      "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
-      "-I/home/martin/school/bac/qm2c/src/connection/include",
-      "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
       "-Wno-deprecated",
-      "-c",
-      "-o",
-      "CMakeFiles/connection.dir/src/client.cpp.o",
-      "/home/martin/school/bac/qm2c/src/connection/src/client.cpp"
-    ],
-    "directory": "/home/martin/school/bac/qm2c/build/src/connection",
-    "file": "/home/martin/school/bac/qm2c/src/connection/src/client.cpp",
-    "output": "/home/martin/school/bac/qm2c/build/src/connection/CMakeFiles/connection.dir/src/client.cpp.o"
-  },
-  {
-    "arguments": [
-      "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
-      "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
-      "-I/home/martin/school/bac/qm2c/src/connection/include",
-      "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
-      "-Wno-deprecated",
+      "-std=gnu++20",
       "-c",
       "-o",
       "CMakeFiles/connection.dir/src/shared_memory.cpp.o",
@@ -413,12 +326,14 @@
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
       "-Wno-deprecated",
+      "-std=gnu++20",
       "-c",
       "-o",
       "CMakeFiles/connection.dir/src/message.cpp.o",
@@ -431,12 +346,14 @@
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
       "-Wno-deprecated",
+      "-std=gnu++20",
       "-c",
       "-o",
       "CMakeFiles/connection.dir/src/connection.cpp.o",
@@ -449,12 +366,14 @@
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
       "-Wno-deprecated",
+      "-std=gnu++20",
       "-c",
       "-o",
       "CMakeFiles/connection.dir/src/target_executor.cpp.o",
@@ -467,152 +386,300 @@
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
       "-Wno-deprecated",
+      "-std=gnu++20",
       "-c",
       "-o",
-      "CMakeFiles/connection.dir/src/client_executor.cpp.o",
-      "/home/martin/school/bac/qm2c/src/connection/src/client_executor.cpp"
+      "CMakeFiles/connection.dir/src/client.cpp.o",
+      "/home/martin/school/bac/qm2c/src/connection/src/client.cpp"
     ],
     "directory": "/home/martin/school/bac/qm2c/build/src/connection",
-    "file": "/home/martin/school/bac/qm2c/src/connection/src/client_executor.cpp",
-    "output": "/home/martin/school/bac/qm2c/build/src/connection/CMakeFiles/connection.dir/src/client_executor.cpp.o"
+    "file": "/home/martin/school/bac/qm2c/src/connection/src/client.cpp",
+    "output": "/home/martin/school/bac/qm2c/build/src/connection/CMakeFiles/connection.dir/src/client.cpp.o"
   },
   {
     "arguments": [
       "/usr/bin/c++",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-std=gnu++20",
+      "-c",
+      "-o",
+      "CMakeFiles/instrumentation.dir/src/target.cpp.o",
+      "/home/martin/school/bac/qm2c/src/instrumentation/src/target.cpp"
+    ],
+    "directory": "/home/martin/school/bac/qm2c/build/src/instrumentation",
+    "file": "/home/martin/school/bac/qm2c/src/instrumentation/src/target.cpp",
+    "output": "/home/martin/school/bac/qm2c/build/src/instrumentation/CMakeFiles/instrumentation.dir/src/target.cpp.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/c++",
+      "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
+      "-I/home/martin/school/bac/qm2c/src/connection/include",
+      "-I/home/martin/school/bac/qm2c/src/iomodels/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-std=gnu++20",
+      "-c",
+      "-o",
+      "CMakeFiles/instrumentation.dir/src/instrumentation_types.cpp.o",
+      "/home/martin/school/bac/qm2c/src/instrumentation/src/instrumentation_types.cpp"
+    ],
+    "directory": "/home/martin/school/bac/qm2c/build/src/instrumentation",
+    "file": "/home/martin/school/bac/qm2c/src/instrumentation/src/instrumentation_types.cpp",
+    "output": "/home/martin/school/bac/qm2c/build/src/instrumentation/CMakeFiles/instrumentation.dir/src/instrumentation_types.cpp.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/c++",
+      "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
+      "-I/home/martin/school/bac/qm2c/src/connection/include",
+      "-I/home/martin/school/bac/qm2c/src/iomodels/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-std=gnu++20",
+      "-c",
+      "-o",
+      "CMakeFiles/instrumentation.dir/src/instrumentation.cpp.o",
+      "/home/martin/school/bac/qm2c/src/instrumentation/src/instrumentation.cpp"
+    ],
+    "directory": "/home/martin/school/bac/qm2c/build/src/instrumentation",
+    "file": "/home/martin/school/bac/qm2c/src/instrumentation/src/instrumentation.cpp",
+    "output": "/home/martin/school/bac/qm2c/build/src/instrumentation/CMakeFiles/instrumentation.dir/src/instrumentation.cpp.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/c++",
+      "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
+      "-I/home/martin/school/bac/qm2c/src/connection/include",
+      "-I/home/martin/school/bac/qm2c/src/iomodels/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-std=gnu++20",
+      "-c",
+      "-o",
+      "CMakeFiles/instrumentation.dir/src/verifier_functions.cpp.o",
+      "/home/martin/school/bac/qm2c/src/instrumentation/src/verifier_functions.cpp"
+    ],
+    "directory": "/home/martin/school/bac/qm2c/build/src/instrumentation",
+    "file": "/home/martin/school/bac/qm2c/src/instrumentation/src/verifier_functions.cpp",
+    "output": "/home/martin/school/bac/qm2c/build/src/instrumentation/CMakeFiles/instrumentation.dir/src/verifier_functions.cpp.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/c++",
+      "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
+      "-I/home/martin/school/bac/qm2c/src/connection/include",
+      "-I/home/martin/school/bac/qm2c/src/iomodels/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-std=gnu++20",
+      "-c",
+      "-o",
+      "CMakeFiles/instrumentation.dir/src/main.cpp.o",
+      "/home/martin/school/bac/qm2c/src/instrumentation/src/main.cpp"
+    ],
+    "directory": "/home/martin/school/bac/qm2c/build/src/instrumentation",
+    "file": "/home/martin/school/bac/qm2c/src/instrumentation/src/main.cpp",
+    "output": "/home/martin/school/bac/qm2c/build/src/instrumentation/CMakeFiles/instrumentation.dir/src/main.cpp.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/c++",
+      "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
+      "-I/home/martin/school/bac/qm2c/src/connection/include",
+      "-I/home/martin/school/bac/qm2c/src/iomodels/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-I/usr/lib/llvm-18/include",
+      "-std=gnu++20",
+      "-c",
+      "-o",
+      "CMakeFiles/instrumenter.dir/src/program_info.cpp.o",
+      "/home/martin/school/bac/qm2c/src/instrumenter/src/program_info.cpp"
+    ],
+    "directory": "/home/martin/school/bac/qm2c/build/src/instrumenter",
+    "file": "/home/martin/school/bac/qm2c/src/instrumenter/src/program_info.cpp",
+    "output": "/home/martin/school/bac/qm2c/build/src/instrumenter/CMakeFiles/instrumenter.dir/src/program_info.cpp.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/c++",
+      "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
+      "-I/home/martin/school/bac/qm2c/src/connection/include",
+      "-I/home/martin/school/bac/qm2c/src/iomodels/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-I/usr/lib/llvm-18/include",
+      "-std=gnu++20",
+      "-c",
+      "-o",
+      "CMakeFiles/instrumenter.dir/src/program_options.cpp.o",
+      "/home/martin/school/bac/qm2c/src/instrumenter/src/program_options.cpp"
+    ],
+    "directory": "/home/martin/school/bac/qm2c/build/src/instrumenter",
+    "file": "/home/martin/school/bac/qm2c/src/instrumenter/src/program_options.cpp",
+    "output": "/home/martin/school/bac/qm2c/build/src/instrumenter/CMakeFiles/instrumenter.dir/src/program_options.cpp.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/c++",
+      "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
+      "-I/home/martin/school/bac/qm2c/src/connection/include",
+      "-I/home/martin/school/bac/qm2c/src/iomodels/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-I/usr/lib/llvm-18/include",
+      "-std=gnu++20",
+      "-c",
+      "-o",
+      "CMakeFiles/instrumenter.dir/src/llvm_instrumenter.cpp.o",
+      "/home/martin/school/bac/qm2c/src/instrumenter/src/llvm_instrumenter.cpp"
+    ],
+    "directory": "/home/martin/school/bac/qm2c/build/src/instrumenter",
+    "file": "/home/martin/school/bac/qm2c/src/instrumenter/src/llvm_instrumenter.cpp",
+    "output": "/home/martin/school/bac/qm2c/build/src/instrumenter/CMakeFiles/instrumenter.dir/src/llvm_instrumenter.cpp.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/c++",
+      "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
+      "-I/home/martin/school/bac/qm2c/src/connection/include",
+      "-I/home/martin/school/bac/qm2c/src/iomodels/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-I/usr/lib/llvm-18/include",
+      "-std=gnu++20",
+      "-c",
+      "-o",
+      "CMakeFiles/instrumenter.dir/src/main.cpp.o",
+      "/home/martin/school/bac/qm2c/src/instrumenter/src/main.cpp"
+    ],
+    "directory": "/home/martin/school/bac/qm2c/build/src/instrumenter",
+    "file": "/home/martin/school/bac/qm2c/src/instrumenter/src/main.cpp",
+    "output": "/home/martin/school/bac/qm2c/build/src/instrumenter/CMakeFiles/instrumenter.dir/src/main.cpp.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/c++",
+      "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
+      "-I/home/martin/school/bac/qm2c/src/connection/include",
+      "-I/home/martin/school/bac/qm2c/src/iomodels/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-I/usr/lib/llvm-18/include",
+      "-std=gnu++20",
+      "-c",
+      "-o",
+      "CMakeFiles/instrumenter.dir/src/run.cpp.o",
+      "/home/martin/school/bac/qm2c/src/instrumenter/src/run.cpp"
+    ],
+    "directory": "/home/martin/school/bac/qm2c/build/src/instrumenter",
+    "file": "/home/martin/school/bac/qm2c/src/instrumenter/src/run.cpp",
+    "output": "/home/martin/school/bac/qm2c/build/src/instrumenter/CMakeFiles/instrumenter.dir/src/run.cpp.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/c++",
+      "-DBOOST_ALL_NO_LIB",
+      "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
+      "-I/home/martin/school/bac/qm2c/src/connection/include",
+      "-I/home/martin/school/bac/qm2c/src/iomodels/include",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
       "-Wno-deprecated",
+      "-std=gnu++20",
       "-c",
       "-o",
-      "CMakeFiles/connection.dir/src/benchmark_executor.cpp.o",
-      "/home/martin/school/bac/qm2c/src/connection/src/benchmark_executor.cpp"
+      "CMakeFiles/server.dir/src/program_info.cpp.o",
+      "/home/martin/school/bac/qm2c/src/server/src/program_info.cpp"
     ],
-    "directory": "/home/martin/school/bac/qm2c/build/src/connection",
-    "file": "/home/martin/school/bac/qm2c/src/connection/src/benchmark_executor.cpp",
-    "output": "/home/martin/school/bac/qm2c/build/src/connection/CMakeFiles/connection.dir/src/benchmark_executor.cpp.o"
+    "directory": "/home/martin/school/bac/qm2c/build/src/server",
+    "file": "/home/martin/school/bac/qm2c/src/server/src/program_info.cpp",
+    "output": "/home/martin/school/bac/qm2c/build/src/server/CMakeFiles/server.dir/src/program_info.cpp.o"
   },
   {
     "arguments": [
-      "/usr/bin/clang++-18",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "/usr/bin/c++",
+      "-DBOOST_ALL_NO_LIB",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
-      "-I/usr/lib/llvm-18/include",
-      "-D_GNU_SOURCE",
-      "-D__STDC_CONSTANT_MACROS",
-      "-D__STDC_FORMAT_MACROS",
-      "-D__STDC_LIMIT_MACROS",
-      "-std=c++20",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-Wno-deprecated",
+      "-std=gnu++20",
       "-c",
       "-o",
-      "CMakeFiles/qmi.dir/src/program_info.cpp.o",
-      "/home/martin/school/bac/qm2c/src/qmi/src/program_info.cpp"
+      "CMakeFiles/server.dir/src/program_options.cpp.o",
+      "/home/martin/school/bac/qm2c/src/server/src/program_options.cpp"
     ],
-    "directory": "/home/martin/school/bac/qm2c/build/src/qmi",
-    "file": "/home/martin/school/bac/qm2c/src/qmi/src/program_info.cpp",
-    "output": "/home/martin/school/bac/qm2c/build/src/qmi/CMakeFiles/qmi.dir/src/program_info.cpp.o"
+    "directory": "/home/martin/school/bac/qm2c/build/src/server",
+    "file": "/home/martin/school/bac/qm2c/src/server/src/program_options.cpp",
+    "output": "/home/martin/school/bac/qm2c/build/src/server/CMakeFiles/server.dir/src/program_options.cpp.o"
   },
   {
     "arguments": [
-      "/usr/bin/clang++-18",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "/usr/bin/c++",
+      "-DBOOST_ALL_NO_LIB",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
-      "-I/usr/lib/llvm-18/include",
-      "-D_GNU_SOURCE",
-      "-D__STDC_CONSTANT_MACROS",
-      "-D__STDC_FORMAT_MACROS",
-      "-D__STDC_LIMIT_MACROS",
-      "-std=c++20",
+      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-Wno-deprecated",
+      "-std=gnu++20",
       "-c",
       "-o",
-      "CMakeFiles/qmi.dir/src/program_options.cpp.o",
-      "/home/martin/school/bac/qm2c/src/qmi/src/program_options.cpp"
+      "CMakeFiles/server.dir/src/main.cpp.o",
+      "/home/martin/school/bac/qm2c/src/server/src/main.cpp"
     ],
-    "directory": "/home/martin/school/bac/qm2c/build/src/qmi",
-    "file": "/home/martin/school/bac/qm2c/src/qmi/src/program_options.cpp",
-    "output": "/home/martin/school/bac/qm2c/build/src/qmi/CMakeFiles/qmi.dir/src/program_options.cpp.o"
+    "directory": "/home/martin/school/bac/qm2c/build/src/server",
+    "file": "/home/martin/school/bac/qm2c/src/server/src/main.cpp",
+    "output": "/home/martin/school/bac/qm2c/build/src/server/CMakeFiles/server.dir/src/main.cpp.o"
   },
   {
     "arguments": [
-      "/usr/bin/clang++-18",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
+      "/usr/bin/c++",
+      "-DBOOST_ALL_NO_LIB",
       "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
+      "-I/home/martin/school/bac/qm2c/src/instrumenter/include",
       "-I/home/martin/school/bac/qm2c/src/connection/include",
       "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
-      "-I/usr/lib/llvm-18/include",
-      "-D_GNU_SOURCE",
-      "-D__STDC_CONSTANT_MACROS",
-      "-D__STDC_FORMAT_MACROS",
-      "-D__STDC_LIMIT_MACROS",
-      "-std=c++20",
-      "-c",
-      "-o",
-      "CMakeFiles/qmi.dir/src/llvm_instrumenter.cpp.o",
-      "/home/martin/school/bac/qm2c/src/qmi/src/llvm_instrumenter.cpp"
-    ],
-    "directory": "/home/martin/school/bac/qm2c/build/src/qmi",
-    "file": "/home/martin/school/bac/qm2c/src/qmi/src/llvm_instrumenter.cpp",
-    "output": "/home/martin/school/bac/qm2c/build/src/qmi/CMakeFiles/qmi.dir/src/llvm_instrumenter.cpp.o"
-  },
-  {
-    "arguments": [
-      "/usr/bin/clang++-18",
       "-I/home/martin/school/bac/qm2c/src/utility/include",
-      "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
-      "-I/home/martin/school/bac/qm2c/src/connection/include",
-      "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
-      "-I/usr/lib/llvm-18/include",
-      "-D_GNU_SOURCE",
-      "-D__STDC_CONSTANT_MACROS",
-      "-D__STDC_FORMAT_MACROS",
-      "-D__STDC_LIMIT_MACROS",
-      "-std=c++20",
+      "-I/home/martin/school/bac/qm2c/src/server/include",
+      "-Wno-deprecated",
+      "-std=gnu++20",
       "-c",
       "-o",
-      "CMakeFiles/qmi.dir/src/main.cpp.o",
-      "/home/martin/school/bac/qm2c/src/qmi/src/main.cpp"
+      "CMakeFiles/server.dir/src/run.cpp.o",
+      "/home/martin/school/bac/qm2c/src/server/src/run.cpp"
     ],
-    "directory": "/home/martin/school/bac/qm2c/build/src/qmi",
-    "file": "/home/martin/school/bac/qm2c/src/qmi/src/main.cpp",
-    "output": "/home/martin/school/bac/qm2c/build/src/qmi/CMakeFiles/qmi.dir/src/main.cpp.o"
-  },
-  {
-    "arguments": [
-      "/usr/bin/clang++-18",
-      "-I/home/martin/school/bac/qm2c/src/utility/include",
-      "-I/home/martin/school/bac/qm2c/src/instrumentation/include",
-      "-I/home/martin/school/bac/qm2c/src/connection/include",
-      "-I/home/martin/school/bac/qm2c/src/iomodels/include",
-      "-I/home/martin/school/bac/qm2c/src/qmi/include",
-      "-I/usr/lib/llvm-18/include",
-      "-D_GNU_SOURCE",
-      "-D__STDC_CONSTANT_MACROS",
-      "-D__STDC_FORMAT_MACROS",
-      "-D__STDC_LIMIT_MACROS",
-      "-std=c++20",
-      "-c",
-      "-o",
-      "CMakeFiles/qmi.dir/src/run.cpp.o",
-      "/home/martin/school/bac/qm2c/src/qmi/src/run.cpp"
-    ],
-    "directory": "/home/martin/school/bac/qm2c/build/src/qmi",
-    "file": "/home/martin/school/bac/qm2c/src/qmi/src/run.cpp",
-    "output": "/home/martin/school/bac/qm2c/build/src/qmi/CMakeFiles/qmi.dir/src/run.cpp.o"
+    "directory": "/home/martin/school/bac/qm2c/build/src/server",
+    "file": "/home/martin/school/bac/qm2c/src/server/src/run.cpp",
+    "output": "/home/martin/school/bac/qm2c/build/src/server/CMakeFiles/server.dir/src/run.cpp.o"
   }
 ]

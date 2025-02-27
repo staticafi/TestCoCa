@@ -2,6 +2,7 @@
 #include <instrumentation/data_record_id.hpp>
 #include <iomodels/configuration.hpp>
 #include <iomodels/models_map.hpp>
+#include <iostream>
 
 namespace bip = boost::interprocess;
 using namespace instrumentation;
@@ -87,6 +88,7 @@ shared_memory& shared_memory::operator>>(std::string& dest)
 
 std::optional<target_termination> shared_memory::get_termination() const
 {
+    std::cout << "get termination debug print" << std::endl;
     data_record_id id = static_cast<data_record_id>(*memory);
     if (id == data_record_id::invalid || id != data_record_id::termination) {
         return std::nullopt;

@@ -1,30 +1,30 @@
-set(THIS_TARGET_NAME client)
+set(THIS_TARGET_NAME server) 
 
-add_executable(${THIS_TARGET_NAME} 
-    ./include/client/program_options.hpp
-    ./src/program_options.cpp
+add_executable(${THIS_TARGET_NAME}
+    include/server/program_info.hpp
+    src/program_info.cpp
 
-    ./include/client/program_info.hpp
-    ./src/program_info.cpp
+    include/server/program_options.hpp
+    src/program_options.cpp
 
-    ./src/run.cpp
-    ./src/main.cpp
+    src/main.cpp
+    src/run.cpp
     )
 
 target_link_libraries(${THIS_TARGET_NAME}
+    instrumentation
     connection
     iomodels
-    instrumentation
-    iomodels
+    instrumentation # Duplicating because of Mingw (otherwise linking errors)
+    connection  # Duplicating because of Mingw (otherwise linking errors)
     utility
-    ${Boost_LIBRARIES}
     Threads::Threads
+    ${Boost_LIBRARIES}
     )
 
 if (LIBRT)
     target_link_libraries(${THIS_TARGET_NAME} ${LIBRT})
 endif()
-
 
 set_target_properties(${THIS_TARGET_NAME} PROPERTIES
     DEBUG_OUTPUT_NAME "${THIS_TARGET_NAME}_${CMAKE_SYSTEM_NAME}_Debug"

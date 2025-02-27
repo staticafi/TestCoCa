@@ -14,7 +14,6 @@ std::unique_ptr<fuzz_target> sbt_fizzer_target =
 using namespace instrumentation;
 
 #if PLATFORM() == PLATFORM_LINUX()
-#include <stdio.h>
 #include <sys/prctl.h>
 #endif
 
@@ -27,13 +26,11 @@ in case of a crash */
         std::cerr << "Failed to set dumpable flag\n";
     }
 #endif
-    std::puts("Before shared memory open or create");
     sbt_fizzer_target->shared_memory.open_or_create();
     sbt_fizzer_target->shared_memory.map_region();
 
     sbt_fizzer_target->load_stdin();
 
-    std::puts("After shared memory open or create");
     sbt_fizzer_target->shared_memory.clear();
 
     // Reserve the first two bytes for termination

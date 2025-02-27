@@ -11,7 +11,6 @@ extern "C" {
 void __qmi_process_br_instr(uint32_t const id,
                                    bool const direction)
 {
-    std::printf("Pozor pozor do pice");
     sbt_fizzer_target->process_br_instr(id, direction);
 }
 
