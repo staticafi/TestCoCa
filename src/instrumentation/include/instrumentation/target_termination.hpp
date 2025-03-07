@@ -10,10 +10,11 @@ enum class target_termination : natural_8_bit {
                   // outside allocated memory.
     timeout = 2,  // The target program timed out
     boundary_condition_violation =
-        3,  // Trace is too long, stack size reached maximum size, max amount of
-            // bytes were read from stdin, ...
-    medium_overflow = 4  // The communication medium (e.g., shared memory)
+        3,  // Trace is too long, stack size reached maximum size,
+    medium_overflow = 4,  // The communication medium (e.g., shared memory)
                          // cannot accept more bytes.
+    insufficient_data = 5, // max amount of bytes were read from stdin
+    ver_error_reached = 6
 };
 
 static bool valid_termination(target_termination termination)

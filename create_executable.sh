@@ -16,15 +16,17 @@ clang -S -emit-llvm -o "$ll_file" "$input_file" || {
     echo "Error generating LLVM IR"
     exit 1
 }
+echo "LLVM IR file created"
 
 # Instrument
 ./build/src/instrumenter/instrumenter --input "$ll_file" --output "$instr_ll" || {
     echo "Error during instrumentation"
     exit 1
 }
+echo "LLVM IR file instrumented"
 
 # Build and link
-clang++ -O3 "$instr_ll" \
+clang++ -O0 "$instr_ll" \
     -Wl,--whole-archive \
     ./build/src/instrumentation/libinstrumentation.a \
     ./build/src/connection/libconnection.a \

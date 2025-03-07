@@ -4,7 +4,7 @@ include_directories(
     "${PROJECT_SOURCE_DIR}/src/connection/include"
     "${PROJECT_SOURCE_DIR}/src/iomodels/include"
     "${PROJECT_SOURCE_DIR}/src/utility/include"
-    "${PROJECT_SOURCE_DIR}/src/server/include"
+    "${PROJECT_SOURCE_DIR}/src/driver/include"
     )
 
 message("Including the following libraries to the build:")
@@ -24,5 +24,5 @@ add_subdirectory(./instrumentation)
 message("       instrumenter")
 add_subdirectory(./instrumenter)
 
-message("       server")
-add_subdirectory(./server)
+message("driver")
+add_subdirectory(driver)

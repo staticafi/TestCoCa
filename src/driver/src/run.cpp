@@ -2,9 +2,10 @@
 #include <iomodels/iomanager.hpp>
 #include <iomodels/models_map.hpp>
 #include <iostream>
-#include <server/program_info.hpp>
-#include <server/program_options.hpp>
+#include <driver/program_options.hpp>
 #include <filesystem>
+
+#include "driver/test_parser.hpp"
 
 void run(int argc, char* argv[])
 {
@@ -105,15 +106,6 @@ void run(int argc, char* argv[])
         {.max_exec_milliseconds = (natural_16_bit)std::max(
              0,
              std::stoi(get_program_options()->value("max_exec_milliseconds"))),
-         .max_trace_length = (natural_32_bit)std::max(
-             0, std::stoi(get_program_options()->value("max_trace_length"))),
-         .max_br_instr_trace_length = (natural_32_bit)std::max(
-             0, std::stoi(
-                    get_program_options()->value("max_br_instr_trace_length"))),
-         .max_stack_size = (natural_8_bit)std::max(
-             0, std::stoi(get_program_options()->value("max_stack_size"))),
-         .max_stdin_bytes = (iomodels::stdin_base::byte_count_type)std::max(
-             0, std::stoi(get_program_options()->value("max_stdin_bytes"))),
          .max_exec_megabytes = (natural_16_bit)std::max(
              0, std::stoi(get_program_options()->value("max_exec_megabytes"))),
          .stdin_model_name  = get_program_options()->value("stdin_model"),
@@ -124,7 +116,7 @@ void run(int argc, char* argv[])
             .filename()
             .string();
     {
-        std::string const target_suffix       = "_sbt-fizzer_target";
+        std::string const target_suffix       = "_target";
         std::string::size_type const suffix_i = target_name.find(target_suffix);
         if (suffix_i != std::string::npos) {
             target_name.erase(suffix_i, target_suffix.length());
@@ -136,6 +128,9 @@ void run(int argc, char* argv[])
 
     executor = std::make_shared<connection::target_executor>(
         get_program_options()->value("path_to_target"));
+
+    Parser parser(get_program_options()->value("test_dir"));
+    std::cout << parser.get_inputs().at(0).at(0).value << std::endl;
 
     executor->init_shared_memory(100);
 

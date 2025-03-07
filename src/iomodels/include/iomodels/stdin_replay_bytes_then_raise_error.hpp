@@ -1,15 +1,13 @@
 #pragma once
 
-#   include <iomodels/stdin_base.hpp>
-#   include <utility/math.hpp>
+#include <iomodels/stdin_base.hpp>
+#include <utility/math.hpp>
 
 namespace  iomodels {
 
-
-    //TODO with error after replay by default
-struct stdin_replay_bytes_then_repeat_byte : public stdin_base
+struct stdin_replay_bytes_then_raise_error : public stdin_base
 {
-    stdin_replay_bytes_then_repeat_byte(byte_count_type  max_bytes_, natural_8_bit repeat_byte);
+    stdin_replay_bytes_then_raise_error(byte_count_type  max_bytes_);
 
     void  clear() override;
     void  save(connection::shared_memory&  dest) const override;
@@ -35,7 +33,6 @@ private:
     byte_count_type  cursor;
     vecu8  bytes;
     input_types_vector  types;
-    natural_8_bit  repeat_byte;
 };
 
 

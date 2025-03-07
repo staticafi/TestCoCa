@@ -1,15 +1,18 @@
-set(THIS_TARGET_NAME server) 
+set(THIS_TARGET_NAME driver)
 
 add_executable(${THIS_TARGET_NAME}
-    include/server/program_info.hpp
+        include/driver/program_info.hpp
     src/program_info.cpp
 
-    include/server/program_options.hpp
+        include/driver/program_options.hpp
     src/program_options.cpp
 
     src/main.cpp
     src/run.cpp
-    )
+
+        include/driver/test_parser.hpp
+    src/test_parser.cpp
+)
 
 target_link_libraries(${THIS_TARGET_NAME}
     instrumentation

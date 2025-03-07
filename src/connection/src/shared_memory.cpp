@@ -88,7 +88,6 @@ shared_memory& shared_memory::operator>>(std::string& dest)
 
 std::optional<target_termination> shared_memory::get_termination() const
 {
-    std::cout << "get termination debug print" << std::endl;
     data_record_id id = static_cast<data_record_id>(*memory);
     if (id == data_record_id::invalid || id != data_record_id::termination) {
         return std::nullopt;
@@ -109,22 +108,14 @@ void shared_memory::set_termination(target_termination termination)
     *(memory + 1) = static_cast<natural_8_bit>(termination);
 }
 
-void shared_memory::accept_bytes(message& src)
-{
-    size_t src_size = src.size();
-    src.deliver_bytes(memory, src_size);
-    *saved += (natural_32_bit)src_size;
-}
-
-void shared_memory::deliver_bytes(message& dest)
-{
-    dest.accept_bytes(memory, *saved);
-    cursor += *saved;
-}
-
 bool shared_memory::exhausted() const
 {
     return cursor >= *saved;
+}
+
+
+natural_8_bit* shared_memory::get_memory(){
+    return memory;
 }
 
 }  // namespace connection

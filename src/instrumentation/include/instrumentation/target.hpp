@@ -10,21 +10,18 @@
 
 namespace instrumentation {
 
-class fuzz_target {
+class target {
    public:
+    iomodels::configuration config;
     iomodels::stdin_base_ptr stdin_model;
     iomodels::stdout_base_ptr stdout_model;
     connection::shared_memory shared_memory;
 
-    fuzz_target();
+    target();
 
-    void process_condition(location_id id, bool direction,
-                           branching_function_value_type value,
-                           bool xor_like_branching_function);
     void process_br_instr(location_id id, bool covered_branch);
 
-    void process_call_begin(natural_32_bit const id);
-    void process_call_end(natural_32_bit const id);
+    void process_ver_error(location_id id);
 
     void on_read(natural_8_bit* ptr, type_of_input_bits type);
     void on_write(natural_8_bit const* ptr, type_of_input_bits type);
@@ -33,6 +30,6 @@ class fuzz_target {
     void load_config();
 };
 
-extern std::unique_ptr<fuzz_target> sbt_fizzer_target;
+extern std::unique_ptr<target> target;
 
 }  // namespace instrumentation

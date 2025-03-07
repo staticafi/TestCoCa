@@ -4,18 +4,9 @@ add_library(${THIS_TARGET_NAME}
     ./include/connection/shared_memory.hpp
     ./src/shared_memory.cpp
 
-    ./include/connection/message.hpp
-    ./src/message.cpp
-
-    ./include/connection/connection.hpp
-    ./src/connection.cpp
-
     ./include/connection/target_executor.hpp
     ./src/target_executor.cpp
-
-    ./include/connection/client.hpp
-    ./src/client.cpp
-    )
+)
 
 target_compile_options(${THIS_TARGET_NAME} PUBLIC "-Wno-deprecated")
 

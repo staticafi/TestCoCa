@@ -1,8 +1,8 @@
-#include <server/program_info.hpp>
+#include <driver/program_info.hpp>
 
 std::string  get_program_name()
 {
-    return "SBT-Fizzer server";
+    return "Driver";
 }
 
 std::string  get_program_version()

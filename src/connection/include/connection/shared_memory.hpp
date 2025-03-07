@@ -2,11 +2,11 @@
 
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/shared_memory_object.hpp>
-#include <connection/message.hpp>
 #include <optional>
 #include <instrumentation/target_termination.hpp>
 #include <utility/assumptions.hpp>
 #include <utility/endian.hpp>
+#include <iostream>
 
 namespace connection {
 
@@ -34,10 +34,8 @@ class shared_memory {
     void accept_bytes(const void* src, size_t n);
     void deliver_bytes(void* dest, size_t n);
 
-    void accept_bytes(message& src);
-    void deliver_bytes(message& dest);
-
     bool exhausted() const;
+    natural_8_bit* get_memory();
 
     /*Interprets the first two bytes as termination type*/
     std::optional<instrumentation::target_termination> get_termination() const;

@@ -68,8 +68,6 @@ bool  iomanager::load_trace_record(Medium& src) {
 }
 
 template bool iomanager::load_trace_record(shared_memory&);
-template bool iomanager::load_trace_record(message&);
-
 
 template <typename Medium>
 bool  iomanager::load_br_instr_trace_record(Medium& src) {
@@ -84,8 +82,6 @@ bool  iomanager::load_br_instr_trace_record(Medium& src) {
 }
 
 template bool iomanager::load_br_instr_trace_record(shared_memory&);
-template bool iomanager::load_br_instr_trace_record(message&);
-
 
 template <typename Medium>
 void  iomanager::load_results(Medium& src) {
@@ -119,13 +115,11 @@ void  iomanager::load_results(Medium& src) {
 
 
 template void iomanager::load_results(shared_memory&);
-template void iomanager::load_results(message&);
-
 
 stdin_base*  iomanager::get_stdin() const
 {
     if (stdin_ptr == nullptr)
-        stdin_ptr = get_stdin_models_map().at(config.stdin_model_name)(config.max_stdin_bytes);
+        stdin_ptr = get_stdin_models_map().at(config.stdin_model_name)(100 /* TODO dummy value*/);
     return stdin_ptr.get();
 }
 

@@ -9,7 +9,10 @@ add_library(${THIS_TARGET_NAME}
 
     ./include/iomodels/stdin_replay_bytes_then_repeat_byte.hpp
     ./src/stdin_replay_bytes_then_repeat_byte.cpp
-    
+
+    ./include/iomodels/stdin_replay_bytes_then_raise_error.hpp
+    ./src/stdin_replay_bytes_then_raise_error.cpp
+
     ./include/iomodels/models_map.hpp
     ./src/models_map.cpp
     
@@ -20,7 +23,9 @@ add_library(${THIS_TARGET_NAME}
 
     ./include/iomodels/configuration.hpp
     ./src/configuration.cpp
-    )
+        include/iomodels/stdin_replay_bytes_then_raise_error.hpp
+        src/stdin_replay_bytes_then_raise_error.cpp
+)
 
 set_target_properties(${THIS_TARGET_NAME} PROPERTIES
     DEBUG_OUTPUT_NAME "${THIS_TARGET_NAME}_${CMAKE_SYSTEM_NAME}_Debug"

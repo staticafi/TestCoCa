@@ -1,4 +1,4 @@
-#include <iomodels/stdin_replay_bytes_then_repeat_byte.hpp>
+#include <iomodels/stdin_replay_bytes_then_raise_error.hpp>
 #include <iostream>
 #include <utility/assumptions.hpp>
 #include <utility/invariants.hpp>
@@ -11,16 +11,15 @@ using namespace instrumentation;
 namespace  iomodels {
 
 
-stdin_replay_bytes_then_repeat_byte::stdin_replay_bytes_then_repeat_byte(byte_count_type const  max_bytes_, natural_8_bit repeat_byte)
+stdin_replay_bytes_then_raise_error::stdin_replay_bytes_then_raise_error(byte_count_type const  max_bytes_)
     : stdin_base{ max_bytes_ }
     , cursor(0U)
     , bytes()
     , types()
-    , repeat_byte(repeat_byte)
 {}
 
 
-void  stdin_replay_bytes_then_repeat_byte::clear()
+void  stdin_replay_bytes_then_raise_error::clear()
 {
     cursor = 0U;
     bytes.clear();
@@ -28,7 +27,7 @@ void  stdin_replay_bytes_then_repeat_byte::clear()
 }
 
 template <typename Medium>
-void  stdin_replay_bytes_then_repeat_byte::save_(Medium& dest) const
+void  stdin_replay_bytes_then_raise_error::save_(Medium& dest) const
 {
     INVARIANT(bytes.size() <= max_bytes());
 
@@ -39,16 +38,16 @@ void  stdin_replay_bytes_then_repeat_byte::save_(Medium& dest) const
     dest.accept_bytes(types.data(), (byte_count_type)types.size());
 }
 
-template void stdin_replay_bytes_then_repeat_byte::save_(shared_memory&) const;
+template void stdin_replay_bytes_then_raise_error::save_(shared_memory&) const;
 
 
-void  stdin_replay_bytes_then_repeat_byte::save(shared_memory& dest) const
+void  stdin_replay_bytes_then_raise_error::save(shared_memory& dest) const
 {
     save_(dest);
 }
 
 template <typename Medium>
-void  stdin_replay_bytes_then_repeat_byte::load_(Medium&  src)
+void  stdin_replay_bytes_then_raise_error::load_(Medium&  src)
 {
     byte_count_type  num_bytes;
     src >> num_bytes;
@@ -64,16 +63,16 @@ void  stdin_replay_bytes_then_repeat_byte::load_(Medium&  src)
     src.deliver_bytes(types.data(), num_types);
 }
 
-template void stdin_replay_bytes_then_repeat_byte::load_(shared_memory&);
+template void stdin_replay_bytes_then_raise_error::load_(shared_memory&);
 
-void  stdin_replay_bytes_then_repeat_byte::load(shared_memory&  src)
+void  stdin_replay_bytes_then_raise_error::load(shared_memory&  src)
 {
     load_(src);
 }
 
 
 template <typename Medium>
-bool  stdin_replay_bytes_then_repeat_byte::load_record_(Medium& src) {
+bool  stdin_replay_bytes_then_raise_error::load_record_(Medium& src) {
     if (!src.can_deliver_bytes(1))
         return false;
     natural_8_bit type_id;
@@ -90,20 +89,20 @@ bool  stdin_replay_bytes_then_repeat_byte::load_record_(Medium& src) {
 }
 
 
-template bool stdin_replay_bytes_then_repeat_byte::load_record_(shared_memory&);
+template bool stdin_replay_bytes_then_raise_error::load_record_(shared_memory&);
 
-bool  stdin_replay_bytes_then_repeat_byte::load_record(shared_memory&  src) {
+bool  stdin_replay_bytes_then_raise_error::load_record(shared_memory&  src) {
     return load_record_(src);
 }
 
 
-std::size_t stdin_replay_bytes_then_repeat_byte::min_flattened_size() const {
+std::size_t stdin_replay_bytes_then_raise_error::min_flattened_size() const {
     return sizeof(input_types_vector::value_type) + 1;
 }
 
 
 
-void  stdin_replay_bytes_then_repeat_byte::read(natural_8_bit*  ptr, 
+void  stdin_replay_bytes_then_raise_error::read(natural_8_bit*  ptr,
                                                 type_of_input_bits const type,
                                                 shared_memory& dest)
 {
@@ -117,8 +116,12 @@ void  stdin_replay_bytes_then_repeat_byte::read(natural_8_bit*  ptr,
         exit(0);
     }
     if (cursor + count > bytes.size()) {
-        bytes.resize(cursor + count, repeat_byte);
+        std::cout << "insufficient_data" << std::endl;
+        dest.set_termination(target_termination::insufficient_data);
+        exit(0);
     }
+
+    std::cout << "read ok" << std::endl;
     memcpy(ptr, bytes.data() + cursor, count);
     dest << data_record_id::stdin_bytes << to_id(type);
     dest.accept_bytes(bytes.data() + cursor, count);
