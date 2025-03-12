@@ -1,6 +1,5 @@
 #include <iomodels/iomanager.hpp>
 #include <iomodels/models_map.hpp>
-#include <iomodels/stdin_replay_bytes_then_repeat_byte.hpp>
 #include <iomodels/stdout_void.hpp>
 #include <instrumentation/data_record_id.hpp>
 #include <utility/hash_combine.hpp>
@@ -87,29 +86,9 @@ template <typename Medium>
 void  iomanager::load_results(Medium& src) {
     TMPROF_BLOCK();
     bool  invalid_record_reached{ false };
+    //TODO remove switch - leave data record id for error detection
     while (!invalid_record_reached && !src.exhausted()) {
-        data_record_id id;
-        src >> id;
-        switch (id) {
-            case data_record_id::condition: 
-                invalid_record_reached = !load_trace_record(src);
-                break;
-            case data_record_id::br_instr:
-                invalid_record_reached = !load_br_instr_trace_record(src);
-                break;
-            case data_record_id::stdin_bytes:
-                invalid_record_reached = !get_stdin()->load_record(src);
-                break;
-            case data_record_id::termination:
-                src >> termination;
-                ASSUMPTION(valid_termination(termination));
-                break;
-            case data_record_id::invalid:
-            default:
-                INVARIANT(termination == target_termination::timeout);
-                invalid_record_reached = true;
-                break;
-        }
+        invalid_record_reached = !load_br_instr_trace_record(src);
     }
 }
 

@@ -15,7 +15,7 @@ void __qmi_process_br_instr(uint32_t const id, bool const direction)
 
 void __qmi_process_ver_error(uint32_t const id)
 {
-    target->process_ver_error(id);
+    target->process_ver_error();
 }
 
 }

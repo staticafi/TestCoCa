@@ -1,14 +1,10 @@
 set(THIS_TARGET_NAME iomodels)
 
 add_library(${THIS_TARGET_NAME}
-
-./include/iomodels/iomanager.hpp
+    ./include/iomodels/iomanager.hpp
     ./src/iomanager.cpp
 
     ./include/iomodels/stdin_base.hpp
-
-    ./include/iomodels/stdin_replay_bytes_then_repeat_byte.hpp
-    ./src/stdin_replay_bytes_then_repeat_byte.cpp
 
     ./include/iomodels/stdin_replay_bytes_then_raise_error.hpp
     ./src/stdin_replay_bytes_then_raise_error.cpp
@@ -23,8 +19,6 @@ add_library(${THIS_TARGET_NAME}
 
     ./include/iomodels/configuration.hpp
     ./src/configuration.cpp
-        include/iomodels/stdin_replay_bytes_then_raise_error.hpp
-        src/stdin_replay_bytes_then_raise_error.cpp
 )
 
 set_target_properties(${THIS_TARGET_NAME} PROPERTIES

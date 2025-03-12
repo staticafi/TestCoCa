@@ -23,6 +23,7 @@ class shared_memory {
     natural_32_bit get_size() const;
     void set_size(natural_32_bit bytes);
     void clear();
+    void print();
 
     void open_or_create();
     void map_region();

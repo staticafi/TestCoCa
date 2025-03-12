@@ -1,6 +1,3 @@
 [submodule "src/utility"]
 	path = src/utility
 	url = https://github.com/staticafi/libutility.git
-[submodule "src/instrumenter"]
-	path = src/instrumenter
-	url = ssh://100.118.147.32:/home/martin/bac/qmi

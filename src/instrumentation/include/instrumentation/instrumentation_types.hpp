@@ -94,6 +94,7 @@ enum struct  type_of_input_bits : natural_8_bit
 
 inline natural_8_bit  to_id(type_of_input_bits const  type) { return (natural_8_bit)type; }
 type_of_input_bits  from_id(natural_8_bit  id);
+type_of_input_bits  from_string(std::string&&);
 
 bool  is_known_type(type_of_input_bits  type);
 bool  is_numeric_type(type_of_input_bits  type);

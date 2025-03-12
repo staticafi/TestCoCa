@@ -23,7 +23,7 @@ Parser::Parser(const std::string& test_dir) : test_dir(test_dir) {
     */
 }
 
-const std::vector<Parser::Test>& Parser::get_inputs() const {
+const std::vector<vecu8>& Parser::get_inputs() const {
     return inputs;
 }
 
@@ -38,22 +38,38 @@ void Parser::parse() {
     }
 }
 
+void append(auto& vec, auto type, auto val) {
+    for (int i = instrumentation::num_bytes(type); i; --i) {
+        auto chunk = static_cast<uint8_t>(val >> (i - 1) * 8);
+        vec.push_back(chunk);
+    }
+}
+
 void Parser::parse_test(const std::filesystem::path& test) {
     boost::property_tree::ptree pt;
     read_xml(test, pt);
 
     const auto& testcase = pt.get_child("testcase");
 
-    std::vector<Input> test_vector;
+    vecu8 test_vector;
     for (const auto& [name, node] : testcase) {
         if (name == "input") {
-            Input input{
-                node.get<std::string>("<xmlattr>.type", ""),
-                node.data()
-            };
-            test_vector.push_back(input);
+            instrumentation::type_of_input_bits type = instrumentation::from_string(node.get<std::string>("<xmlattr>.type", "unsigned long"));
+
+            //TODO support for unsigned long long
+            auto val = std::stoll(node.data());
+            append(test_vector, type,  val);
         }
     }
 
+    std::cout << "parsed data: " << std::endl;
+    for (unsigned char i : test_vector) {
+        std::cout << (int) i << " ";
+    }
+    std::cout << std::endl;
+
+    test_vector.shrink_to_fit();
+
     inputs.push_back(test_vector);
 }
+

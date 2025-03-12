@@ -1,3 +1,4 @@
+#include <iomanip>
 #include <connection/shared_memory.hpp>
 #include <instrumentation/data_record_id.hpp>
 #include <iomodels/configuration.hpp>
@@ -13,6 +14,7 @@ void shared_memory::open_or_create()
 {
     shm = bip::shared_memory_object(bip::open_or_create, segment_name,
                                     bip::read_write);
+    std::cout << "tu som" << std::endl;
 }
 
 natural_32_bit shared_memory::get_size() const
@@ -31,6 +33,7 @@ void shared_memory::set_size(natural_32_bit size)
 
 void shared_memory::clear()
 {
+    memset(memory, 0, region.get_size()); //TODO remove, only for testing
     cursor = 0;
     *saved = 0;
 }
@@ -116,6 +119,39 @@ bool shared_memory::exhausted() const
 
 natural_8_bit* shared_memory::get_memory(){
     return memory;
+}
+
+void shared_memory::print() {
+    auto buffer = memory;
+    int size = get_size();
+
+    std::cout << "Shared Memory Dump (" << size << " bytes):\n";
+
+    for (size_t i = 0; i < size; i += 16) {  // Print 16 bytes per row
+        std::cout << std::setw(4) << std::setfill('0') << i << "  ";
+
+        // Print hex values
+        for (size_t j = 0; j < 16; j++) {
+            if (i + j < size) {
+                std::cout << std::hex << std::setw(2) << std::setfill('0')
+                          << (int)buffer[i + j] << " " << std::dec;
+            } else {
+                std::cout << "   ";  // Padding for alignment
+            }
+        }
+
+        std::cout << " ";
+
+        // Print ASCII characters
+        for (size_t j = 0; j < 16; j++) {
+            if (i + j < size) {
+                char c = buffer[i + j];
+                std::cout << (std::isprint(c) ? c : '.');  // Replace non-printable chars
+            }
+        }
+
+        std::cout << std::endl;
+    }
 }
 
 }  // namespace connection

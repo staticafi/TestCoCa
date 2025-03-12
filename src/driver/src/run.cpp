@@ -4,6 +4,7 @@
 #include <iostream>
 #include <driver/program_options.hpp>
 #include <filesystem>
+#include <boost/process/exe.hpp>
 
 #include "driver/test_parser.hpp"
 
@@ -130,13 +131,21 @@ void run(int argc, char* argv[])
         get_program_options()->value("path_to_target"));
 
     Parser parser(get_program_options()->value("test_dir"));
-    std::cout << parser.get_inputs().at(0).at(0).value << std::endl;
+
+    auto test_vec = parser.get_inputs()[0];
+    auto size = test_vec.size();
 
     executor->init_shared_memory(100);
+    executor->get_shared_memory().clear();
+
+    executor->get_shared_memory() << static_cast<natural_32_bit>(size);
+    executor->get_shared_memory().accept_bytes(test_vec.data(), size);
 
     std::cout << "Running target..." << std::endl;
 
+    executor->get_shared_memory().print();
     executor->execute_target();
+    executor->get_shared_memory().print();
 
     std::cout << "Target finished" << std::endl;
 }

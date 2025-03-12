@@ -23,13 +23,6 @@ struct stdin_replay_bytes_then_raise_error : public stdin_base
     void  set_bytes(vecu8 const&  bytes_) override { bytes = bytes_; }
 
 private:
-    template <typename Medium>
-    void  load_(Medium& src);
-    template <typename Medium>
-    void  save_(Medium& dest) const;
-    template <typename Medium>
-    bool  load_record_(Medium& src);
-
     byte_count_type  cursor;
     vecu8  bytes;
     input_types_vector  types;

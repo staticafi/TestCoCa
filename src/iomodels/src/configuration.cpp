@@ -72,6 +72,7 @@ template void configuration::save_target_config(connection::shared_memory&) cons
 
 template <typename Medium>
 void configuration::load_target_config(Medium& src) {
+    return;
     src >> max_exec_megabytes;
     src >> stdin_model_name;
     src >> stdout_model_name;

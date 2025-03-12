@@ -175,7 +175,23 @@ std::string  to_c_type_string(type_of_input_bits  type)
         case type_of_input_bits::UNTYPED32: return "unsigned int";
         case type_of_input_bits::UNTYPED64: return "unsigned long";
         default: { UNREACHABLE(); return "ERROR"; }
+        //TODO how to handle long long
     }
+}
+
+type_of_input_bits from_string(std::string&& type_str) {
+    if (type_str == "bool") {return type_of_input_bits::BOOLEAN;}
+    if (type_str == "unsigned char") {return type_of_input_bits::UINT8;}
+    if (type_str == "char") {return type_of_input_bits::SINT8;}
+    if (type_str == "unsigned short") {return type_of_input_bits::UINT16;}
+    if (type_str == "short") {return type_of_input_bits::SINT16;}
+    if (type_str == "unsigned int") {return type_of_input_bits::UINT32;}
+    if (type_str == "int") {return type_of_input_bits::SINT32;}
+    if (type_str == "unsigned long") {return type_of_input_bits::UINT64;}
+    if (type_str == "long") {return type_of_input_bits::SINT64;}
+    if (type_str == "float") {return type_of_input_bits::FLOAT32;}
+    if (type_str == "double") {return type_of_input_bits::FLOAT64;}
+    UNREACHABLE();
 }
 
 
