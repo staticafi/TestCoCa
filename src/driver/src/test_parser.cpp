@@ -39,6 +39,8 @@ void Parser::parse() {
 }
 
 void append(auto& vec, auto type, auto val) {
+   // vec.push_back(static_cast<uint8_t>(type));
+
     for (int i = instrumentation::num_bytes(type); i; --i) {
         auto chunk = static_cast<uint8_t>(val >> (i - 1) * 8);
         vec.push_back(chunk);

@@ -1,6 +1,5 @@
 #include <connection/target_executor.hpp>
 #include <iomodels/iomanager.hpp>
-#include <iomodels/models_map.hpp>
 #include <iostream>
 #include <driver/program_options.hpp>
 #include <filesystem>
@@ -10,18 +9,6 @@
 
 void run(int argc, char* argv[])
 {
-    if (get_program_options()->has("list_stdin_models")) {
-        for (auto const& name_and_constructor :
-             iomodels::get_stdin_models_map())
-            std::cout << name_and_constructor.first << std::endl;
-        return;
-    }
-    if (get_program_options()->has("list_stdout_models")) {
-        for (auto const& name_and_constructor :
-             iomodels::get_stdout_models_map())
-            std::cout << name_and_constructor.first << std::endl;
-        return;
-    }
     const std::string& test_type = get_program_options()->value("test_type");
     if (test_type != "native" && test_type != "testcomp") {
         std::cerr << "ERROR: unknown output type specified. Use native or "
@@ -132,20 +119,22 @@ void run(int argc, char* argv[])
 
     Parser parser(get_program_options()->value("test_dir"));
 
-    auto test_vec = parser.get_inputs()[0];
-    auto size = test_vec.size();
-
     executor->init_shared_memory(100);
-    executor->get_shared_memory().clear();
 
-    executor->get_shared_memory() << static_cast<natural_32_bit>(size);
-    executor->get_shared_memory().accept_bytes(test_vec.data(), size);
+    std::cout << "Running tests..." << std::endl;
+    for (auto& test_vec: parser.get_inputs()) {
+        auto size = test_vec.size();
 
-    std::cout << "Running target..." << std::endl;
+        executor->get_shared_memory().clear();
 
-    executor->get_shared_memory().print();
-    executor->execute_target();
-    executor->get_shared_memory().print();
+        executor->get_shared_memory() << static_cast<natural_32_bit>(size);
+        executor->get_shared_memory().accept_bytes(test_vec.data(), size);
 
-    std::cout << "Target finished" << std::endl;
+
+        std::cout << "test loaded into shared memory:" << std::endl;
+        executor->get_shared_memory().print();
+        executor->execute_target();
+        executor->get_shared_memory().print();
+
+    }
 }

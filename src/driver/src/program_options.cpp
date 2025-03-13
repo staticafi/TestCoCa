@@ -6,9 +6,6 @@
 program_options::program_options(int argc, char* argv[])
     : program_options_default(argc, argv)
 {
-    add_option("list_stdin_models", "Prints stdin models.", "0");
-    add_option("list_stdout_models", "Prints stdout models.", "0");
-
     add_option("output_dir", "A directory where to store generated tests.", "1");
     add_value("output_dir", ".");
 

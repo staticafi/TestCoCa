@@ -1,6 +1,4 @@
 #include <iomodels/configuration.hpp>
-#include <iomodels/models_map.hpp>
-#include <instrumentation/data_record_id.hpp>
 #include <optional>
 
 using namespace instrumentation;
@@ -27,8 +25,7 @@ natural_32_bit configuration::required_shared_memory_size() const {
         return shared_memory_size_cache.value();
     }
 
-    std::size_t const  data_id_size = sizeof(data_record_id);
-    std::size_t const  termination_record_size = data_id_size + sizeof(target_termination);
+    std::size_t const  termination_record_size = sizeof(target_termination);
 
     natural_32_bit const  result = (natural_32_bit) (
             flattened_size() +
@@ -53,11 +50,13 @@ static std::size_t  longest_key(std::unordered_map<std::string, T> const&  map)
 
 
 std::size_t configuration::flattened_size() {
+    /*
     static std::size_t const  max_stdin_key_size = longest_key(iomodels::get_stdin_models_map());
     static std::size_t const  max_stdout_key_size = longest_key(iomodels::get_stdin_models_map());
     return sizeof(max_exec_megabytes) +
             max_stdin_key_size +
             max_stdout_key_size;
+            */
 }
 
 

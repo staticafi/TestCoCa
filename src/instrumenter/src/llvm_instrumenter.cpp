@@ -30,7 +30,7 @@ bool llvm_instrumenter::doInitialization(Module* M)
     processCondBrFunc = module->getOrInsertFunction("__qmi_process_br_instr",
                                                     VoidTy, Int32Ty);
 
-    processCondBrFunc = module->getOrInsertFunction("__qmi_process_ver_error",
+    processVerErrFunc = module->getOrInsertFunction("__qmi_process_ver_error",
                                                     VoidTy);
 
     basicBlockCounter = 0;
@@ -66,6 +66,7 @@ void llvm_instrumenter::instrumentCondBr(BranchInst* brInst) const {
 }
 
 void llvm_instrumenter::instrumentVerifierError(BranchInst* brInst) const {
+    assert(false);
     IRBuilder builder(brInst);
     Value* location = ConstantInt::get(Int32Ty, basicBlockCounter);
     builder.CreateCall(processVerErrFunc, {location});

@@ -9,10 +9,7 @@ add_library(${THIS_TARGET_NAME}
     ./include/iomodels/stdin_replay_bytes_then_raise_error.hpp
     ./src/stdin_replay_bytes_then_raise_error.cpp
 
-    ./include/iomodels/models_map.hpp
-    ./src/models_map.cpp
-    
-    ./include/iomodels/stdout_base.hpp
+        ./include/iomodels/stdout_base.hpp
     
     ./include/iomodels/stdout_void.hpp
     ./src/stdout_void.cpp

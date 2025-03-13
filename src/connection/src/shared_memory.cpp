@@ -1,8 +1,6 @@
 #include <iomanip>
 #include <connection/shared_memory.hpp>
-#include <instrumentation/data_record_id.hpp>
 #include <iomodels/configuration.hpp>
-#include <iomodels/models_map.hpp>
 #include <iostream>
 
 namespace bip = boost::interprocess;
@@ -14,7 +12,6 @@ void shared_memory::open_or_create()
 {
     shm = bip::shared_memory_object(bip::open_or_create, segment_name,
                                     bip::read_write);
-    std::cout << "tu som" << std::endl;
 }
 
 natural_32_bit shared_memory::get_size() const
@@ -91,13 +88,8 @@ shared_memory& shared_memory::operator>>(std::string& dest)
 
 std::optional<target_termination> shared_memory::get_termination() const
 {
-    data_record_id id = static_cast<data_record_id>(*memory);
-    if (id == data_record_id::invalid || id != data_record_id::termination) {
-        return std::nullopt;
-    }
-
     target_termination termination =
-        static_cast<target_termination>(*(memory + 1));
+        static_cast<target_termination>(*memory);
     if (!valid_termination(termination)) {
         return std::nullopt;
     }
@@ -107,8 +99,7 @@ std::optional<target_termination> shared_memory::get_termination() const
 
 void shared_memory::set_termination(target_termination termination)
 {
-    *memory       = static_cast<natural_8_bit>(data_record_id::termination);
-    *(memory + 1) = static_cast<natural_8_bit>(termination);
+    *memory = static_cast<natural_8_bit>(termination);
 }
 
 bool shared_memory::exhausted() const

@@ -2,7 +2,6 @@
 #include <iostream>
 #include <utility/assumptions.hpp>
 #include <utility/invariants.hpp>
-#include <instrumentation/data_record_id.hpp>
 #include <instrumentation/target_termination.hpp>
 
 using namespace connection;
@@ -72,6 +71,9 @@ void  stdin_replay_bytes_then_raise_error::read(natural_8_bit*  ptr,
                                                 shared_memory& dest)
 {
     natural_8_bit const count = num_bytes(type);
+
+    std::lock_guard lock(mutex);
+
     if (cursor + count > max_bytes()) {
         dest.set_termination(target_termination::boundary_condition_violation);
         exit(0);
@@ -85,8 +87,8 @@ void  stdin_replay_bytes_then_raise_error::read(natural_8_bit*  ptr,
         exit(0);
     }
 
-    std::cout << "read ok" << std::endl;
     memcpy(ptr, bytes.data() + cursor, count);
+    cursor += count;
 }
 
 

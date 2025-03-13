@@ -26,6 +26,7 @@ private:
     byte_count_type  cursor;
     vecu8  bytes;
     input_types_vector  types;
+    std::mutex mutex;
 };
 
 

@@ -24,5 +24,5 @@ add_subdirectory(./instrumentation)
 message("       instrumenter")
 add_subdirectory(./instrumenter)
 
-message("driver")
+message("       driver")
 add_subdirectory(driver)

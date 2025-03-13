@@ -1,4 +1,3 @@
-#include <instrumentation/data_record_id.hpp>
 #include <instrumentation/target.hpp>
 #include <iostream>
 #include <iomanip>
@@ -29,6 +28,7 @@ in case of a crash */
         std::cerr << "Failed to set dumpable flag\n";
     }
 #endif
+
     target->shared_memory.open_or_create();
     target->shared_memory.map_region();
 
@@ -38,13 +38,10 @@ in case of a crash */
 
     target->shared_memory.clear();
 
-    // Reserve the first two bytes for termination
-    target->shared_memory << data_record_id::invalid
-                                     << data_record_id::invalid;
+    // reserve first byte for target termination
+    target->shared_memory << target_termination::normal;
 
     __qmi_original_main();
-
-    target->shared_memory.print();
 
     target->shared_memory.set_termination(
         target_termination::normal);
