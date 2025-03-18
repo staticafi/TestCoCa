@@ -2,7 +2,7 @@
 #include <iostream>
 #include <utility/assumptions.hpp>
 #include <utility/invariants.hpp>
-#include <instrumentation/target_termination.hpp>
+#include <target/target_termination.hpp>
 
 using namespace connection;
 using namespace instrumentation;
@@ -44,35 +44,15 @@ void  stdin_replay_bytes_then_raise_error::load(shared_memory&  src)
     src.deliver_bytes(bytes.data(), num_bytes);
 }
 
-bool  stdin_replay_bytes_then_raise_error::load_record(shared_memory& src) {
-    if (!src.can_deliver_bytes(1))
-        return false;
-    natural_8_bit type_id;
-    src >> type_id;
-    type_of_input_bits const type = from_id(type_id);
-    natural_8_bit const count = num_bytes(type);
-    if (!src.can_deliver_bytes(count))
-        return false;
-    types.push_back(type);
-    size_t old_size = bytes.size();
-    bytes.resize(old_size + count);
-    src.deliver_bytes(bytes.data() + old_size, count);
-    return true;
-}
-
 std::size_t stdin_replay_bytes_then_raise_error::min_flattened_size() const {
     return sizeof(input_types_vector::value_type) + 1;
 }
-
-
 
 void  stdin_replay_bytes_then_raise_error::read(natural_8_bit*  ptr,
                                                 type_of_input_bits const type,
                                                 shared_memory& dest)
 {
     natural_8_bit const count = num_bytes(type);
-
-    std::lock_guard lock(mutex);
 
     if (cursor + count > max_bytes()) {
         dest.set_termination(target_termination::boundary_condition_violation);

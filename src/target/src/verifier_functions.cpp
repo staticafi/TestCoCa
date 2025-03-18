@@ -1,4 +1,4 @@
-#include <instrumentation/target.hpp>
+#include <target/target.hpp>
 #include <utility/config.hpp>
 #if COMPILER() == COMPILER_VC()
 #   define _Bool bool

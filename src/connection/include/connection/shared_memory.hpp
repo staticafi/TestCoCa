@@ -3,7 +3,7 @@
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/shared_memory_object.hpp>
 #include <optional>
-#include <instrumentation/target_termination.hpp>
+#include <target/target_termination.hpp>
 #include <utility/assumptions.hpp>
 #include <utility/endian.hpp>
 #include <iostream>
@@ -38,10 +38,11 @@ class shared_memory {
     bool exhausted() const;
     natural_8_bit* get_memory();
 
-    /*Interprets the first two bytes as termination type*/
     std::optional<instrumentation::target_termination> get_termination() const;
-    /*Overwrites the first two bytes to set termination type*/
+
     void set_termination(instrumentation::target_termination termination);
+
+    natural_32_bit get_cond_br_count() const;
 
     template <typename T,
               typename std::enable_if<std::is_trivially_copyable<T>::value,

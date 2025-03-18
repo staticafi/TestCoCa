@@ -7,8 +7,7 @@
 
 #include "driver/test_parser.hpp"
 
-void run(int argc, char* argv[])
-{
+void run(int argc, char* argv[]) {
     const std::string& test_type = get_program_options()->value("test_type");
     if (test_type != "native" && test_type != "testcomp") {
         std::cerr << "ERROR: unknown output type specified. Use native or "
@@ -58,7 +57,7 @@ void run(int argc, char* argv[])
                   << get_program_options()->value("path_to_target")
                   << "' does not reference a regular file.\n";
         return;
-    }
+            }
     std::filesystem::perms const perms =
         std::filesystem::status(get_program_options()->value("path_to_target"))
             .permissions();
@@ -68,7 +67,7 @@ void run(int argc, char* argv[])
                   << get_program_options()->value("path_to_target")
                   << "' references a file which is NOT executable.\n";
         return;
-    }
+        }
     if (get_program_options()->has("path_to_client")) {
         if (!std::filesystem::is_regular_file(
                 get_program_options()->value("path_to_client"))) {
@@ -76,7 +75,7 @@ void run(int argc, char* argv[])
                       << get_program_options()->value("path_to_client")
                       << "' does not reference a regular file.\n";
             return;
-        }
+                }
         std::filesystem::perms const perms =
             std::filesystem::status(
                 get_program_options()->value("path_to_client"))
@@ -87,7 +86,7 @@ void run(int argc, char* argv[])
                       << get_program_options()->value("path_to_client")
                       << "' references a file which is NOT executable.\n";
             return;
-        }
+            }
     }
 
     iomodels::iomanager::instance().set_config(
@@ -96,8 +95,7 @@ void run(int argc, char* argv[])
              std::stoi(get_program_options()->value("max_exec_milliseconds"))),
          .max_exec_megabytes = (natural_16_bit)std::max(
              0, std::stoi(get_program_options()->value("max_exec_megabytes"))),
-         .stdin_model_name  = get_program_options()->value("stdin_model"),
-         .stdout_model_name = get_program_options()->value("stdout_model")});
+         .stdin_model_name  = get_program_options()->value("stdin_model")});
 
     std::string target_name =
         std::filesystem::path(get_program_options()->value("path_to_target"))
@@ -121,20 +119,33 @@ void run(int argc, char* argv[])
 
     executor->init_shared_memory(100);
 
-    std::cout << "Running tests..." << std::endl;
-    for (auto& test_vec: parser.get_inputs()) {
-        auto size = test_vec.size();
+    std::set inputs = parser.get_inputs();
+    for (auto to: {20, 100, 200}) {
+        executor->set_timeout(to);
 
-        executor->get_shared_memory().clear();
+        std::cout << "Running tests with timeout " << to << std::endl;
+        for (auto test_vec_it = inputs.begin(); test_vec_it != inputs.end();) {
+            auto size = test_vec_it->size();
 
-        executor->get_shared_memory() << static_cast<natural_32_bit>(size);
-        executor->get_shared_memory().accept_bytes(test_vec.data(), size);
+            executor->get_shared_memory().clear();
 
+            executor->get_shared_memory() << static_cast<natural_32_bit>(size);
+            executor->get_shared_memory().accept_bytes(test_vec_it->data(), size);
+            std::cout << "test loaded into shared memory" << std::endl;
 
-        std::cout << "test loaded into shared memory:" << std::endl;
-        executor->get_shared_memory().print();
-        executor->execute_target();
-        executor->get_shared_memory().print();
+            executor->get_shared_memory().print();
+            executor->execute_target();
+            executor->get_shared_memory().print();
 
+            if (executor->get_shared_memory().get_termination() == instrumentation::target_termination::normal ||
+                executor->get_shared_memory().get_termination() == instrumentation::target_termination::ver_error_reached)
+            {
+                std::cout << "tu som" << std::endl;
+                inputs.erase(test_vec_it++);
+            } else {
+                ++test_vec_it;
+            }
+
+        }
     }
 }

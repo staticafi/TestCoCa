@@ -9,13 +9,10 @@ add_library(${THIS_TARGET_NAME}
     ./include/iomodels/stdin_replay_bytes_then_raise_error.hpp
     ./src/stdin_replay_bytes_then_raise_error.cpp
 
-        ./include/iomodels/stdout_base.hpp
-    
-    ./include/iomodels/stdout_void.hpp
-    ./src/stdout_void.cpp
-
-    ./include/iomodels/configuration.hpp
+        ./include/iomodels/configuration.hpp
     ./src/configuration.cpp
+        ../driver/src/run_analyzer.cpp
+        ../driver/include/driver/run_analyzer.h
 )
 
 set_target_properties(${THIS_TARGET_NAME} PROPERTIES

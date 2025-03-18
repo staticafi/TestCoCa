@@ -7,9 +7,6 @@
 #include <fstream>
 #include <stdexcept>
 #include <iostream>
-//#if COMPILER() == COMPILER_VC()
-//#   pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup") 
-//#endif
 
 extern void run(int argc, char* argv[]);
 

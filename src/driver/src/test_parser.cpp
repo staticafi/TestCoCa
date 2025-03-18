@@ -23,12 +23,12 @@ Parser::Parser(const std::string& test_dir) : test_dir(test_dir) {
     */
 }
 
-const std::vector<vecu8>& Parser::get_inputs() const {
+const std::set<vecu8>& Parser::get_inputs() const {
     return inputs;
 }
 
 void Parser::parse() {
-    std::cout << "Parsing test directory" << std::endl;
+    std::cout << "Parsing test directory: " << test_dir << std::endl;
     inputs.clear();
 
     for (auto file : std::filesystem::directory_iterator(test_dir)) {
@@ -38,12 +38,12 @@ void Parser::parse() {
     }
 }
 
-void append(auto& vec, auto type, auto val) {
+void append(auto& cont, auto type, auto val) {
    // vec.push_back(static_cast<uint8_t>(type));
 
     for (int i = instrumentation::num_bytes(type); i; --i) {
         auto chunk = static_cast<uint8_t>(val >> (i - 1) * 8);
-        vec.push_back(chunk);
+        cont.push_back(chunk);
     }
 }
 
@@ -58,7 +58,6 @@ void Parser::parse_test(const std::filesystem::path& test) {
         if (name == "input") {
             instrumentation::type_of_input_bits type = instrumentation::from_string(node.get<std::string>("<xmlattr>.type", "unsigned long"));
 
-            //TODO support for unsigned long long
             auto val = std::stoll(node.data());
             append(test_vector, type,  val);
         }
@@ -72,6 +71,6 @@ void Parser::parse_test(const std::filesystem::path& test) {
 
     test_vector.shrink_to_fit();
 
-    inputs.push_back(test_vector);
+    inputs.emplace(test_vector);
 }
 

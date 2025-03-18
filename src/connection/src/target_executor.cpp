@@ -32,21 +32,29 @@ void target_executor::init_shared_memory(std::size_t size)
     get_shared_memory().map_region();
 }
 
+void target_executor::set_timeout(natural_16_bit const timeout_ms_)
+{
+    timeout_ms = timeout_ms_;
+}
+
 
 void target_executor::execute_target()
 {
-    try {
-        std::cout << "Starting test process..." << std::endl;
-
-        bp::child test_proc(target_invocation, bp::std_out > stdout);
-
-        test_proc.wait();  // Wait for process to finish
-
-        std::cout << "Exit code: " << test_proc.exit_code() << std::endl;
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+    using namespace std::chrono_literals;
+    bp::child target = bp::child(target_invocation, bp::std_out > bp::null, bp::std_err > bp::null);
+    if (!wait_for_wrapper(target, std::chrono::milliseconds(timeout_ms))) {
+        target.terminate();
+        get_shared_memory().set_termination(target_termination::timeout);
     }
 
+    if (!get_shared_memory().get_termination()) {
+        if (target.exit_code() == 0) {
+            get_shared_memory().set_termination(target_termination::normal);
+        }
+        else {
+            get_shared_memory().set_termination(target_termination::crash);
+        }
+    }
 }
 
 }  // namespace connection

@@ -1,25 +1,26 @@
 set(THIS_TARGET_NAME driver)
 
 add_executable(${THIS_TARGET_NAME}
-        include/driver/program_info.hpp
+    include/driver/program_info.hpp
     src/program_info.cpp
 
-        include/driver/program_options.hpp
+    include/driver/program_options.hpp
     src/program_options.cpp
 
     src/main.cpp
     src/run.cpp
 
-        include/driver/test_parser.hpp
+    include/driver/test_parser.hpp
     src/test_parser.cpp
+
+    include/driver/run_analyzer.h
+    src/run_analyzer.cpp
 )
 
 target_link_libraries(${THIS_TARGET_NAME}
-    instrumentation
+    target
     connection
     iomodels
-    instrumentation # Duplicating because of Mingw (otherwise linking errors)
-    connection  # Duplicating because of Mingw (otherwise linking errors)
     utility
     Threads::Threads
     ${Boost_LIBRARIES}

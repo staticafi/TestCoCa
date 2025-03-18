@@ -1,6 +1,6 @@
 #include <cstdint>
-#include <instrumentation/instrumentation_types.hpp>
-#include <instrumentation/target.hpp>
+#include <target/instrumentation_types.hpp>
+#include <target/target.hpp>
 #include <utility/basic_numeric_types.hpp>
 #include <utility/invariants.hpp>
 

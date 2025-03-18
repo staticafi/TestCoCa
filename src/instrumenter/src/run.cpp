@@ -21,48 +21,6 @@
 #include <utility/config.hpp>
 #include <utility/timeprof.hpp>
 
-void dump_dbg_mapping(
-    llvm_instrumenter::instruction_dbg_info_vector const& mapping,
-    llvm_instrumenter::basic_block_dbg_info_map const& bbInfo,
-    std::string const& type)
-{
-    TMPROF_BLOCK();
-
-    std::filesystem::path const output_dir{
-        std::filesystem::path(get_program_options()->value("output"))
-            .parent_path()};
-    std::filesystem::path const input_file_name{
-        std::filesystem::path(get_program_options()->value("input"))
-            .filename()
-            .replace_extension("")};
-    std::filesystem::path pathname =
-        output_dir / (input_file_name.string() + "_dbg_" + type + "_map.json");
-    std::ofstream ostr(pathname.c_str(), std::ios::binary);
-    ostr << "{";
-
-    bool started{false};
-    for (auto const& info : mapping) {
-        if (started)
-            ostr << ',';
-        else
-            started = true;
-        llvm::DILocation const* dbgLoc = info.instruction->getDebugLoc();
-        if (dbgLoc == nullptr)
-            dbgLoc = bbInfo.at(info.instruction->getParent()).info;
-        if (dbgLoc == nullptr) {
-            std::cerr << "Retrieval of debug information for the instruction #"
-                      << info.id << "has FAILED!\n";
-            continue;
-        }
-        ostr << '\n'
-             << '"' << info.id << "\": [ " << dbgLoc->getLine() << ", "
-             << dbgLoc->getColumn() << ", "
-             << bbInfo.at(info.instruction->getParent()).id << ", "
-             << info.shift << " ]";
-    }
-    ostr << "\n}\n";
-}
-
 void run(int argc, char* argv[])
 {
     TMPROF_BLOCK();
@@ -96,7 +54,7 @@ void run(int argc, char* argv[])
     {
         TMPROF_BLOCK();
 
-        M = llvm::parseIRFile(get_program_options()->value("input"), D, C);
+        M = parseIRFile(get_program_options()->value("input"), D, C);
         if (M == nullptr) {
             llvm::raw_os_ostream ros(std::cout);
             D.print(std::filesystem::path(get_program_options()->value("input"))
@@ -112,8 +70,10 @@ void run(int argc, char* argv[])
     llvm_instrumenter instrumenter;
     instrumenter.doInitialization(M.get());
     instrumenter.renameFunctions();
-    for (auto it = M->begin(); it != M->end(); ++it)
-        instrumenter.runOnFunction(*it);
+    for (auto & it : *M)
+        instrumenter.runOnFunction(it);
+
+    instrumenter.addCondBrCount();
 
     {
         TMPROF_BLOCK();
@@ -123,13 +83,5 @@ void run(int argc, char* argv[])
         llvm::raw_os_ostream ros(ostr);
         M->print(ros, 0);
         ros.flush();
-    }
-
-    if (get_program_options()->has("save_mapping")) {
-        instrumenter.propagateMissingBasicBlockDbgInfo();
-        dump_dbg_mapping(instrumenter.getCondInstrDbgInfo(),
-                         instrumenter.getBasicBlockDbgInfo(), "cond");
-        dump_dbg_mapping(instrumenter.getBrInstrDbgInfo(),
-                         instrumenter.getBasicBlockDbgInfo(), "br");
     }
 }

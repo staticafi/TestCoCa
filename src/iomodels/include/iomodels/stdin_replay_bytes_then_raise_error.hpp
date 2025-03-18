@@ -12,7 +12,6 @@ struct stdin_replay_bytes_then_raise_error : public stdin_base
     void  clear() override;
     void  save(connection::shared_memory&  dest) const override;
     void  load(connection::shared_memory&  src) override;
-    bool  load_record(connection::shared_memory&  src) override;
     std::size_t min_flattened_size() const override;
     void  read(natural_8_bit*  ptr, type_of_input_bits  type, connection::shared_memory& dest) override;
 
@@ -26,7 +25,6 @@ private:
     byte_count_type  cursor;
     vecu8  bytes;
     input_types_vector  types;
-    std::mutex mutex;
 };
 
 

@@ -1,17 +1,17 @@
-set(THIS_TARGET_NAME instrumentation)
+set(THIS_TARGET_NAME target)
 
 add_library(${THIS_TARGET_NAME}
-    ./include/instrumentation/target.hpp
-    ./src/target.cpp
+        include/target/target.hpp
+        src/target.cpp
 
-    ./include/instrumentation/instrumentation_types.hpp
-    ./src/instrumentation_types.cpp
+        include/target/instrumentation_types.hpp
+        src/instrumentation_types.cpp
 
-        ./src/instrumentation.cpp
+        src/instrumentation.cpp
 
-    ./src/verifier_functions.cpp
+        src/verifier_functions.cpp
 
-    ./src/main.cpp
+        src/main.cpp
     )
 
 set_target_properties(${THIS_TARGET_NAME} PROPERTIES

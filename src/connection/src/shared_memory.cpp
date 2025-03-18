@@ -97,6 +97,10 @@ std::optional<target_termination> shared_memory::get_termination() const
     return termination;
 }
 
+natural_32_bit shared_memory::get_cond_br_count() const {
+    return *(memory + 2);
+}
+
 void shared_memory::set_termination(target_termination termination)
 {
     *memory = static_cast<natural_8_bit>(termination);

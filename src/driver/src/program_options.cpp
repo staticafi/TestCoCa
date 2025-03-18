@@ -22,9 +22,6 @@ program_options::program_options(int argc, char* argv[])
     add_option("stdin_model", "The model of stdin to be used during the analysis.", "1");
     add_value("stdin_model", io_cfg.stdin_model_name);
 
-    add_option("stdout_model", "The model of stdout to be used during the analysis.", "1");
-    add_value("stdout_model", io_cfg.stdout_model_name);
-
     add_option("path_to_target", "Path to target executable.", "1");
     add_option("test_dir", "Path to the directory containing tests", "1");
 

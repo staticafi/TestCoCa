@@ -27,12 +27,10 @@ echo "LLVM IR file instrumented"
 
 # Build and link
 clang++ -O0 "$instr_ll" \
-    -Wl,--whole-archive \
-    ./build/src/instrumentation/libinstrumentation.a \
+    ./build/src/target/libtarget.a \
     ./build/src/connection/libconnection.a \
     ./build/src/iomodels/libiomodels.a \
     ./build/src/utility/libutility.a \
-    -Wl,--no-whole-archive \
     -lstdc++ -lm -lpthread -lrt -ldl \
     -o "$output_file"
 
