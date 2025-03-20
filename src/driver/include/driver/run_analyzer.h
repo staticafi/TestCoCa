@@ -10,6 +10,7 @@ class run_analyzer {
     std::unordered_map<instrumentation::br_instr_id, instrumentation::condition_coverage> coverage;
     natural_32_bit br_instr_count = 0;
 
+   public:
     void add_execution(connection::shared_memory& src);
     float get_result();
 };

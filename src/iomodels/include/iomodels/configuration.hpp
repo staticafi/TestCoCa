@@ -1,6 +1,7 @@
 #pragma once
 
-#include <iomodels/stdin_base.hpp>
+#include "connection/shared_memory.hpp"
+#include "utility/basic_numeric_types.hpp"
 
 
 namespace iomodels {
@@ -19,15 +20,10 @@ struct  configuration
 
     static std::size_t flattened_size();
 
-    // 
     mutable std::optional<natural_32_bit> shared_memory_size_cache;
 
-    // not used by sbt-fizzer_target
     natural_16_bit max_exec_milliseconds { 250 };
-
-    // used by sbt-fizzer_target
     natural_16_bit  max_exec_megabytes { 1024 };
-    std::string  stdin_model_name{ "stdin_replay_bytes_then_raise_error" };
 };
 
 }

@@ -4,10 +4,8 @@ add_library(${THIS_TARGET_NAME}
     ./include/iomodels/iomanager.hpp
     ./src/iomanager.cpp
 
-    ./include/iomodels/stdin_base.hpp
-
-    ./include/iomodels/stdin_replay_bytes_then_raise_error.hpp
-    ./src/stdin_replay_bytes_then_raise_error.cpp
+        include/iomodels/input_model.hpp
+        src/input_model.cpp
 
         ./include/iomodels/configuration.hpp
     ./src/configuration.cpp

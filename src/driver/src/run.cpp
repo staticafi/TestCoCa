@@ -5,7 +5,51 @@
 #include <filesystem>
 #include <boost/process/exe.hpp>
 
+#include "driver/run_analyzer.h"
 #include "driver/test_parser.hpp"
+
+void run_test_suite() {
+    const auto executor = std::make_shared<connection::target_executor>(
+        get_program_options()->value("path_to_target"));
+
+    Parser parser(get_program_options()->value("test_dir"));
+
+    run_analyzer analyzer;
+
+    executor->init_shared_memory(100);
+
+    std::set inputs = parser.get_inputs();
+    for (const auto limit: {20, 100, 200}) { //TODO add
+        executor->set_timeout(limit);
+
+        std::cout << "Running tests with timeout " << limit << std::endl;
+        for (auto test_vec_it = inputs.begin(); test_vec_it != inputs.end();) {
+            auto size = test_vec_it->size();
+
+            executor->get_shared_memory().clear();
+
+            executor->get_shared_memory() << static_cast<natural_32_bit>(size);
+            executor->get_shared_memory().accept_bytes(test_vec_it->data(), size);
+            std::cout << "test loaded into shared memory" << std::endl;
+
+            executor->execute_target();
+            executor->get_shared_memory().print();
+
+            analyzer.add_execution(executor->get_shared_memory());
+
+            if (executor->get_shared_memory().get_termination() == instrumentation::target_termination::normal ||
+                executor->get_shared_memory().get_termination() == instrumentation::target_termination::ver_error_reached)
+            {
+                inputs.erase(test_vec_it++);
+            } else {
+                ++test_vec_it;
+            }
+
+        }
+    }
+
+    std::cout << "Coverage: " << analyzer.get_result() << std::endl;
+}
 
 void run(int argc, char* argv[]) {
     const std::string& test_type = get_program_options()->value("test_type");
@@ -94,8 +138,7 @@ void run(int argc, char* argv[]) {
              0,
              std::stoi(get_program_options()->value("max_exec_milliseconds"))),
          .max_exec_megabytes = (natural_16_bit)std::max(
-             0, std::stoi(get_program_options()->value("max_exec_megabytes"))),
-         .stdin_model_name  = get_program_options()->value("stdin_model")});
+             0, std::stoi(get_program_options()->value("max_exec_megabytes")))});
 
     std::string target_name =
         std::filesystem::path(get_program_options()->value("path_to_target"))
@@ -109,43 +152,5 @@ void run(int argc, char* argv[]) {
         }
     }
 
-    std::shared_ptr<connection::target_executor> executor;
-    std::cout << "Communication type: shared memory" << std::endl;
-
-    executor = std::make_shared<connection::target_executor>(
-        get_program_options()->value("path_to_target"));
-
-    Parser parser(get_program_options()->value("test_dir"));
-
-    executor->init_shared_memory(100);
-
-    std::set inputs = parser.get_inputs();
-    for (auto to: {20, 100, 200}) {
-        executor->set_timeout(to);
-
-        std::cout << "Running tests with timeout " << to << std::endl;
-        for (auto test_vec_it = inputs.begin(); test_vec_it != inputs.end();) {
-            auto size = test_vec_it->size();
-
-            executor->get_shared_memory().clear();
-
-            executor->get_shared_memory() << static_cast<natural_32_bit>(size);
-            executor->get_shared_memory().accept_bytes(test_vec_it->data(), size);
-            std::cout << "test loaded into shared memory" << std::endl;
-
-            executor->get_shared_memory().print();
-            executor->execute_target();
-            executor->get_shared_memory().print();
-
-            if (executor->get_shared_memory().get_termination() == instrumentation::target_termination::normal ||
-                executor->get_shared_memory().get_termination() == instrumentation::target_termination::ver_error_reached)
-            {
-                std::cout << "tu som" << std::endl;
-                inputs.erase(test_vec_it++);
-            } else {
-                ++test_vec_it;
-            }
-
-        }
-    }
+    run_test_suite();
 }

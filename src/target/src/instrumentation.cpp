@@ -10,7 +10,7 @@ extern "C" {
 
 void __qmi_process_br_instr(uint32_t const id, bool const direction)
 {
-    target->process_br_instr(id, direction);
+    target->process_br_instr(id, static_cast<condition_coverage>(direction));
 }
 
 void __qmi_process_ver_error(uint32_t const id)

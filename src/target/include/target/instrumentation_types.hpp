@@ -8,9 +8,9 @@ namespace  instrumentation {
 using  br_instr_id = natural_32_bit;
 
 enum condition_coverage : natural_8_bit {
-    TRUE = 1,
-    FALSE = 1,
-    BOTH = 2
+    FALSE,
+    TRUE,
+    BOTH
 };
 
 struct  br_instr_coverage_info
@@ -25,8 +25,6 @@ struct  br_instr_coverage_info
 
 enum struct type_of_input_bits : natural_8_bit
 {
-    // Known types:
-
     BOOLEAN = 0U,
 
     UINT8 = 1U,

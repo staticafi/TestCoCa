@@ -1,6 +1,6 @@
 #include <iomodels/iomanager.hpp>
 
-#include "iomodels/stdin_replay_bytes_then_raise_error.hpp"
+#include "iomodels/input_model.hpp"
 
 using namespace connection;
 using namespace instrumentation;
@@ -28,10 +28,10 @@ void  iomanager::set_config(configuration const&  cfg)
     stdin_ptr = nullptr;
 }
 
-stdin_base*  iomanager::get_stdin() const
+input_model* iomanager::get_stdin() const
 {
     if (stdin_ptr == nullptr)
-        stdin_ptr = std::make_unique<stdin_replay_bytes_then_raise_error>(100);
+        stdin_ptr = std::make_unique<input_model>(100);
     return stdin_ptr.get();
 }
 

@@ -19,9 +19,6 @@ program_options::program_options(int argc, char* argv[])
     add_option("max_exec_megabytes", "Max number of mega bytes which can be allocated during benchmark execution.", "1");
     add_value("max_exec_megabytes", std::to_string(io_cfg.max_exec_megabytes));
 
-    add_option("stdin_model", "The model of stdin to be used during the analysis.", "1");
-    add_value("stdin_model", io_cfg.stdin_model_name);
-
     add_option("path_to_target", "Path to target executable.", "1");
     add_option("test_dir", "Path to the directory containing tests", "1");
 

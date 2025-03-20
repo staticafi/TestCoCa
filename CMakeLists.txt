@@ -15,7 +15,6 @@ include_directories(${Boost_INCLUDE_DIRS})
 find_package(LLVM REQUIRED CONFIG)
 llvm_map_components_to_libnames(LLVM_LIBS core support irreader transformutils)
 
-set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/dist" CACHE STRING "Install path" FORCE)
-set(CMAKE_BINARY_DIR "${PROJECT_SOURCE_DIR}/build" CACHE STRING "Build directory" FORCE)
+install(DIRECTORY ./benchmarks DESTINATION .)
 
 add_subdirectory(./src)

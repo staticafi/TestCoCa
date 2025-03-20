@@ -2,7 +2,8 @@
 
 #include <iomodels/configuration.hpp>
 #include <target/target_termination.hpp>
-#include <iomodels/stdin_base.hpp>
+
+#include "input_model.hpp"
 
 namespace  iomodels {
 
@@ -16,16 +17,14 @@ struct  iomanager
 
     instrumentation::target_termination  get_termination() const { return termination; }
 
-    void  load_results(connection::shared_memory& src);
-
-    stdin_base*  get_stdin() const;
+    input_model*  get_stdin() const;
 
 private:
     iomanager();
 
     configuration config;
     instrumentation::target_termination  termination;
-    mutable stdin_base_ptr  stdin_ptr;
+    mutable input_model_ptr stdin_ptr;
 };
 
 

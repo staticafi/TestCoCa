@@ -1,7 +1,6 @@
 #include <target/target.hpp>
-#include <iostream>
 
-#include "iomodels/stdin_replay_bytes_then_raise_error.hpp"
+#include "iomodels/input_model.hpp"
 
 using namespace iomodels;
 
@@ -11,7 +10,7 @@ target::target()
 {
 }
 
-void target::process_br_instr(br_instr_id id, bool covered_branch)
+void target::process_br_instr(const br_instr_id id, const condition_coverage covered_branch)
 {
     std::lock_guard lock(mutex);
     if (stdin_model->num_bytes_read() == 0) return;
@@ -22,8 +21,17 @@ void target::process_br_instr(br_instr_id id, bool covered_branch)
         exit(0);
     }
 
-    // TODO use hashmap
-    shared_memory << id << covered_branch;
+    if (!index_map.contains(id)) {
+        index_map.emplace(id, index++);
+    }
+
+    auto i = index_map[id];
+
+    auto mem = (br_instr_coverage_info*)(shared_memory.get_memory() +
+                sizeof(instrumentation::target_termination) * 2 +
+                sizeof(natural_32_bit));
+
+    mem[i] = br_instr_coverage_info(id, covered_branch);
 }
 
 void target::process_ver_error()
@@ -46,7 +54,7 @@ void target::load_stdin()
 
 void target::load_config() {
     config.load_target_config(shared_memory);
-    stdin_model = std::make_unique<stdin_replay_bytes_then_raise_error>(100); //TODO dummy value
+    stdin_model = std::make_unique<input_model>(100); //TODO dummy value
 }
 
 }  // namespace instrumentation
