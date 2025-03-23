@@ -1,3 +1,4 @@
+import glob
 import os
 import sys
 import json
@@ -28,7 +29,7 @@ class Benchmark:
 
         self.src_file = os.path.join(self.work_dir, self.fname)
         self.config_file = os.path.join(self.work_dir, self.name + ".json")
-        self.test_suite = os.path.join(self.work_dir, self.name + "_test_suite")
+        self.test_suite = os.path.join(self.work_dir, "test_suite")
 
         with open(self.config_file, "rb") as fp:
             self.config = json.load(fp)
@@ -45,11 +46,7 @@ class Benchmark:
             #"optimizer_max_stdin_bytes"
             ]), "Benchmark's JSON file does not contain all required options for running the tool.")
 
-        self.target_file = os.path.join(self.work_dir, self.name + "_target")
-        self.aux_files = [
-            os.path.join(self.work_dir, self.name + ".ll"),
-            os.path.join(self.work_dir, self.name + "_instrumented.ll")
-        ]
+        self.instrumented_bin = self.name + "_instr.out"
 
         self.dir_stack = []
 
@@ -81,19 +78,16 @@ class Benchmark:
             shutil.rmtree(pathname)
 
     def _compute_output_dir(self, benchmarks_root_dir : str, output_root_dir : str):
-        return os.path.splitext(os.path.join(output_root_dir, os.path.relpath(self.src_file, benchmarks_root_dir)))[0]
+        return os.path.dirname(os.path.join(output_root_dir, os.path.relpath(self.src_file, benchmarks_root_dir)))
 
     def _execute(self, cmdline : str, output_dir : str) -> None:
-        self.pushd(output_dir)
-        # TODO ??
         cmd = [x for x in cmdline if len(x) > 0]
         self.log(" ".join(cmd))
         subprocess.run(cmd)
-        self.popd()
 
     def _execute_and_check_output(self, cmdline : str, desired_output : str, work_dir : str = None) -> None:
         self._execute(cmdline, os.path.dirname(desired_output) if work_dir is None else work_dir)
-        ASSUMPTION(os.path.isfile(desired_output), "_execute_and_check_output(): the output is missing: " + desired_output)
+        ASSUMPTION(os.path.isdir(desired_output), "_execute_and_check_output(): the output is missing: " + desired_output)
 
     @staticmethod
     def _add_error_message(text: str, errors: list, properties: list):
@@ -173,51 +167,31 @@ class Benchmark:
 
         self._execute_and_check_output(
             [
-                self.python_binary,
-                self.runner_script,
-                "--skip_fuzzing",
-                "--input_file", self.src_file,
-                "--output_dir",  self.work_dir,
-                "--silent_mode",
-                "--save_mapping"
+                benman.target_builder,
+                "--input", self.src_file,
+                "--output", self.instrumented_bin,
+                "--output_dir", output_dir,
             ] + (["--m32"] if "m32" in self.config["args"] and self.config["args"]["m32"] is True else []),
-            self.target_file,
             output_dir
             )
 
         self.log("Done", "Done\n")
 
-    def fuzz(self, benchmarks_root_dir : str, output_root_dir : str) -> bool:
+    def test(self, benchmarks_root_dir : str, output_root_dir : str) -> bool:
         self.log("===")
-        self.log("=== Fuzzing: " + self.src_file, "fuzzing: " + os.path.relpath(self.src_file, os.path.dirname(self.work_dir)) + " ... ")
+        self.log("=== testing: " + self.src_file)
         self.log("===")
-        if self.work_dir.endswith("pending"):
-            self.log("The outcomes are as IGNORED => the test has PASSED.", "ignored\n")
-            return True
 
         output_dir = self._compute_output_dir(benchmarks_root_dir, output_root_dir)
 
         self.log("makedirs " + output_dir)
         os.makedirs(output_dir, exist_ok=True)
+
         self._execute(
             [
-                self.python_binary,
-                self.runner_script,
-                "--skip_building",
-                "--input_file", self.src_file,
-                "--output_dir", output_dir,
-                "--max_executions", str(self.config["args"]["max_executions"]),
-                "--max_seconds", str(self.config["args"]["max_seconds"]),
-                "--max_trace_length", str(self.config["args"]["max_trace_length"]),
-                "--max_stdin_bytes", str(self.config["args"]["max_stdin_bytes"]),
-                "--max_exec_milliseconds", str(self.config["args"]["max_exec_milliseconds"]),
-                "--max_exec_megabytes", str(self.config["args"]["max_exec_megabytes"]),
-                "--optimizer_max_seconds", str(self.config["args"]["optimizer_max_seconds"]),
-                "--optimizer_max_trace_length", str(self.config["args"]["optimizer_max_trace_length"]),
-                "--optimizer_max_stdin_bytes", str(self.config["args"]["optimizer_max_stdin_bytes"]),
-                "--test_type", "native",
-                ("--silent_mode" if self.verbose is False else ""),
-                "--port", str(45654)
+                benman.driver_bin,
+                "--path_to_target", os.path.join(output_dir, self.instrumented_bin),
+                "--test_dir", self.test_suite,
             ],
             output_dir
             )
@@ -242,9 +216,6 @@ class Benchmark:
         self.log("===")
         self.log("=== Clearing: " + self.src_file, "clearing: " + os.path.relpath(self.src_file, os.path.dirname(self.work_dir)) + " ... ")
         self.log("===")
-        for aux_file in self.aux_files:
-            self._erase_file_if_exists(aux_file)
-        self._erase_file_if_exists(self.target_file)
         self._erase_dir_if_exists(self._compute_output_dir(benchmarks_root_dir, output_root_dir))
         self.log("Done", "Done\n")
 
@@ -254,42 +225,60 @@ class Benman:
         parser = argparse.ArgumentParser(description="Builds the target for the benchmark(s) or fuzz the benchmark(s).")
         parser.add_argument("--clear", action='store_true', help="Clears the build files and outputs of the input benchmark(s).")
         parser.add_argument("--build", action='store_true', help="Builds the input benchmark(s).")
-        fuzzing_group = parser.add_argument_group("fuzzing")
-        fuzzing_group.add_argument("--fuzz", action='store_true', help="Applies fuzzing on the input benchmark(s).")
+        parser.add_argument("--test", action='store_true', help="Test the coverage of input benchmark(s)")
         parser.add_argument("--input", help="Benchmark(s) to be processed. Possible values: "
-                                           "all, fast, medium, slow, pending, fast/..., medium/..., slow/..., pending/...")
+                                           "all, fast, fast/...")
         parser.add_argument("--verbose", action='store_true', help="Enables the verbose mode.")
         self.args = parser.parse_args()
 
         self.python_binary = '"' + sys.executable + '"'
-        self._benchmarks_dir = os.getcwd()
-        self.benchmarks_dir = self._benchmarks_dir
-        self.output_dir = os.path.normpath(os.path.join(self._benchmarks_dir, "..", "output", "benchmarks"))
+        self.benchmarks_dir = os.getcwd()
+        self.output_dir = os.path.normpath(os.path.join(self.benchmarks_dir, "..", "output", "benchmarks"))
 
         #TODO make sure driver is compiled?
-        self.target_builder = os.path.join(self.benchmarks_dir, "..", "create_executable.sh")
+        self.target_builder = os.path.join(self.benchmarks_dir, "create_executable.sh")
         ASSUMPTION(os.path.isfile(self.target_builder), "The target builder script not found. Build and install the project first.")
         self.driver_bin = os.path.join(self.benchmarks_dir, "..", "build", "src", "driver", "driver")
         ASSUMPTION(os.path.isfile(self.driver_bin), "The driver binary not found. Build and install the project first.")
 
     def collect_benchmarks(self, name : str) -> list[str]:
-        def complete_and_check_benchmark_path(name : str) -> str:
-            pathname = os.path.join(self.benchmarks_dir, name)
-            ASSUMPTION(os.path.isfile(pathname), "The benchmark path is invalid: " + pathname)
-            ASSUMPTION(os.path.isfile(os.path.splitext(pathname)[0] + ".json"), "Missing '.json' file for benchmark: " + pathname)
-            ASSUMPTION(os.path.isdir(os.path.splitext(pathname)[0] + "_test_suite"), "Missing test suite for benchmark: " + pathname)
-            return pathname
+        def complete_and_check_benchmark_path(benchmark_path : str) -> str:
+            benchmark_dir = os.path.join(self.benchmarks_dir, benchmark_path)
+            benchmark_name = os.path.basename(benchmark_dir)
+
+            ASSUMPTION(os.path.isdir(benchmark_dir),
+                       f"Benchmark directory not found: {benchmark_dir}")
+
+            c_file_path = os.path.join(benchmark_dir, f"{benchmark_name}.c")
+            ASSUMPTION(os.path.isfile(c_file_path),
+                       f"Missing main C file: {c_file_path}")
+
+            json_path = os.path.join(benchmark_dir, f"{benchmark_name}.json")
+            ASSUMPTION(os.path.isfile(json_path),
+                       f"Missing JSON configuration: {json_path}")
+
+            test_suite_dir = os.path.join(benchmark_dir, "test_suite")
+            ASSUMPTION(os.path.isdir(test_suite_dir),
+                       f"Missing test_suite directory in {benchmark_dir}")
+
+            test_pattern = os.path.join(test_suite_dir, f"{benchmark_name}_test_*.xml")
+            test_files = glob.glob(test_pattern)
+            ASSUMPTION(len(test_files) >= 1,
+                       f"Expected at least 1 test files matching {benchmark_name}_test_*.xml, found {len(test_files)}")
+
+            metadata_path = os.path.join(test_suite_dir, "metadata.xml")
+            ASSUMPTION(os.path.isfile(metadata_path),
+                       f"Missing metadata.xml in test suite")
+
+            return c_file_path
 
         def search_for_benchmarks(folder : str) -> list:
             benchmarks = []
             pathname = os.path.join(self.benchmarks_dir, folder)
             if os.path.isdir(pathname):
                 for name in os.listdir(pathname):
-                    if os.path.splitext(name)[1].lower() in [".c", ".i"]:
-                        try:
-                            benchmarks.append(complete_and_check_benchmark_path(os.path.join(folder, name)))
-                        except Exception:
-                            pass
+                    if os.path.isdir(os.path.join(folder, name)):
+                        benchmarks.append(complete_and_check_benchmark_path(os.path.join(folder, name)))
             return benchmarks
 
         kinds = ["fast"]
@@ -309,12 +298,12 @@ class Benman:
             benchmark.build(self.benchmarks_dir, self.output_dir)
         return True
 
-    def fuzz(self, name : str):
+    def test(self, name : str):
         num_failures = 0
         benchmark_paths = self.collect_benchmarks(name)
         for pathname in benchmark_paths:
             benchmark = Benchmark(pathname, self.driver_bin, self.args.verbose)
-            if not benchmark.fuzz(self.benchmarks_dir, self.output_dir):
+            if not benchmark.test(self.benchmarks_dir, self.output_dir):
                 num_failures += 1
         if num_failures > 0:
             print("FAILURE[" + str(num_failures) + "/" + str(len(benchmark_paths)) + "]")
@@ -335,8 +324,8 @@ class Benman:
         if self.args.build:
             if self.build(self.args.input) is False:
                 return False
-        if self.args.fuzz:
-            if self.fuzz(self.args.input) is False:
+        if self.args.test:
+            if self.test(self.args.input) is False:
                 return False
         return True
 

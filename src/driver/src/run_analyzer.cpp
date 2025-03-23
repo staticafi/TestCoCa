@@ -1,5 +1,7 @@
 #include "driver/run_analyzer.h"
 
+#include <boost/property_tree/json_parser.hpp>
+
 void run_analyzer::add_execution(connection::shared_memory &src) {
     if (br_instr_count == 0) br_instr_count = src.get_cond_br_count();
 
@@ -20,6 +22,7 @@ void run_analyzer::add_execution(connection::shared_memory &src) {
         }
     }
 }
+
 
 float run_analyzer::get_result() {
     natural_32_bit contitions_covered = 0;

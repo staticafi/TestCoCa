@@ -4,9 +4,20 @@
 #include <driver/program_options.hpp>
 #include <filesystem>
 #include <boost/process/exe.hpp>
+#include <boost/property_tree/ptree_fwd.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 #include "driver/run_analyzer.h"
 #include "driver/test_parser.hpp"
+
+
+void save_result_to_json(const std::string& filename, const auto& value) {
+    boost::property_tree::ptree root;
+
+    root.put("result", value);
+
+    boost::property_tree::write_json(filename, root, std::locale(), true);
+}
 
 void run_test_suite() {
     const auto executor = std::make_shared<connection::target_executor>(
@@ -49,29 +60,19 @@ void run_test_suite() {
     }
 
     std::cout << "Coverage: " << analyzer.get_result() << std::endl;
+    save_result_to_json(std::filesystem::absolute(get_program_options()->value("output_dir")), analyzer.get_result());
 }
 
 void run(int argc, char* argv[]) {
-    const std::string& test_type = get_program_options()->value("test_type");
-    if (test_type != "native" && test_type != "testcomp") {
-        std::cerr << "ERROR: unknown output type specified. Use native or "
-                     "testcomp.\n";
-        return;
-    }
-
     if (get_program_options()->value("output_dir").empty()) {
         std::cerr << "ERROR: The output directory path is empty.\n";
         return;
     }
+
     std::filesystem::path output_dir =
         std::filesystem::absolute(get_program_options()->value("output_dir"));
     {
         std::error_code ec;
-        if (test_type == "testcomp") {
-            std::filesystem::create_directories(output_dir / "test-suite", ec);
-        } else {
-            std::filesystem::create_directories(output_dir, ec);
-        }
         if (ec) {
             std::cerr << "ERROR: Failed to create/access the output "
                          "directory:\n        "
