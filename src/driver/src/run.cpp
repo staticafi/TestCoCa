@@ -44,7 +44,6 @@ void run_test_suite() {
             executor->get_shared_memory().accept_bytes(test_vec_it->data(), size);
             std::cout << "test loaded into shared memory" << std::endl;
             executor->get_shared_memory().print();
-
             executor->execute_target();
             executor->get_shared_memory().print();
 

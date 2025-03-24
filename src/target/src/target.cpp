@@ -14,7 +14,6 @@ target::target()
 void target::process_br_instr(const br_instr_id id, const condition_coverage covered_branch)
 {
     std::lock_guard lock(mutex);
-    if (stdin_model->num_bytes_read() == 0) return;
 
     if (!shared_memory.can_accept_bytes(
             br_instr_coverage_info::flattened_size())) {
@@ -22,17 +21,27 @@ void target::process_br_instr(const br_instr_id id, const condition_coverage cov
         exit(0);
     }
 
-    if (!index_map.contains(id)) {
-        index_map.emplace(id, index++);
-    }
+    //TODO insert
+    auto [it, inserted] = index_map.insert({id, index});
 
-    auto i = index_map[id];
+    auto i = it->second;
 
     auto mem = (br_instr_coverage_info*)(shared_memory.get_memory() +
                 sizeof(instrumentation::target_termination) * 2 +
                 sizeof(natural_32_bit));
 
-    mem[i] = br_instr_coverage_info(id, covered_branch);
+    if (inserted) {
+        ++index;
+        mem[i] = br_instr_coverage_info(id, covered_branch);
+        return;
+    }
+
+    auto saved_cov = mem[i].coverage;
+
+    if (saved_cov != instrumentation::BOTH &&
+        saved_cov != covered_branch) {
+        mem[i].coverage = instrumentation::BOTH;
+    }
 }
 
 void target::process_ver_error()

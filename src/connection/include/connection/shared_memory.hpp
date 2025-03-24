@@ -15,6 +15,7 @@ class shared_memory {
 
     boost::interprocess::shared_memory_object shm;
     boost::interprocess::mapped_region region;
+    //TODO 64b
     natural_32_bit cursor = 0;
     natural_8_bit* memory = nullptr;
     natural_32_bit* saved = nullptr;

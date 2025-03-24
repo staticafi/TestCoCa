@@ -13,8 +13,8 @@ namespace instrumentation {
 
 class target {
     std::mutex mutex;
-    size_t index = 0;
-    std::map<br_instr_id, size_t> index_map;
+    uint64_t index = 0;
+    std::map<br_instr_id, uint64_t> index_map;
 
    public:
     iomodels::configuration config;

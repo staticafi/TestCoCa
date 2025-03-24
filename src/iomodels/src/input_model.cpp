@@ -66,13 +66,9 @@ void  input_model::read(natural_8_bit*  ptr,
     }
 
     memcpy(ptr, bytes.data() + cursor, count);
-    dest.accept_bytes(bytes.data() + cursor, count);
 
     for (int i = count - 1; i >= 0; --i) {
         ptr[count - 1 - i] = bytes[i];
-    }
-    for (char b: bytes) {
-        std::cout << (int) b << std::endl;
     }
 
     cursor += count;
