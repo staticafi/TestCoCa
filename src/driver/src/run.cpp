@@ -14,7 +14,7 @@
 void save_result_to_json(const std::string& filename, const auto& value) {
     boost::property_tree::ptree root;
 
-    root.put("result", value);
+    root.put<float>("result", value);
 
     boost::property_tree::write_json(filename, root, std::locale(), true);
 }
@@ -27,6 +27,7 @@ void run_test_suite() {
 
     run_analyzer analyzer;
 
+    //TODO size?
     executor->init_shared_memory(100);
 
     std::set inputs = parser.get_inputs();
@@ -42,6 +43,7 @@ void run_test_suite() {
             executor->get_shared_memory() << static_cast<natural_32_bit>(size);
             executor->get_shared_memory().accept_bytes(test_vec_it->data(), size);
             std::cout << "test loaded into shared memory" << std::endl;
+            executor->get_shared_memory().print();
 
             executor->execute_target();
             executor->get_shared_memory().print();
@@ -59,8 +61,11 @@ void run_test_suite() {
         }
     }
 
+
     std::cout << "Coverage: " << analyzer.get_result() << std::endl;
-    save_result_to_json(std::filesystem::absolute(get_program_options()->value("output_dir")), analyzer.get_result());
+    auto result_file = std::filesystem::path(get_program_options()->value("output_dir")).append("result.json");
+    std::cout << result_file << std::endl;
+    save_result_to_json(result_file, analyzer.get_result());
 }
 
 void run(int argc, char* argv[]) {

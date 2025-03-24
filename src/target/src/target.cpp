@@ -1,3 +1,4 @@
+#include <fstream>
 #include <target/target.hpp>
 
 #include "iomodels/input_model.hpp"

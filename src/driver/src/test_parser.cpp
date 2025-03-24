@@ -39,8 +39,6 @@ void Parser::parse() {
 }
 
 void append(auto& cont, auto type, auto val) {
-   // vec.push_back(static_cast<uint8_t>(type));
-
     for (int i = instrumentation::num_bytes(type); i; --i) {
         auto chunk = static_cast<uint8_t>(val >> (i - 1) * 8);
         cont.push_back(chunk);
@@ -55,12 +53,12 @@ void Parser::parse_test(const std::filesystem::path& test) {
 
     vecu8 test_vector;
     for (const auto& [name, node] : testcase) {
-        if (name == "input") {
-            instrumentation::type_of_input_bits type = instrumentation::from_string(node.get<std::string>("<xmlattr>.type", "unsigned long"));
+        if (name != "input") continue;
 
-            auto val = std::stoll(node.data());
-            append(test_vector, type,  val);
-        }
+        instrumentation::type_of_input_bits type = instrumentation::from_string(node.get<std::string>("<xmlattr>.type", "unsigned long"));
+
+        auto val = std::stoll(node.data());
+        append(test_vector, type,  val);
     }
 
     std::cout << "parsed data: " << std::endl;

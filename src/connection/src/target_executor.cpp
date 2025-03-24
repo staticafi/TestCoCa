@@ -41,7 +41,7 @@ void target_executor::set_timeout(natural_16_bit const timeout_ms_)
 void target_executor::execute_target()
 {
     using namespace std::chrono_literals;
-    bp::child target = bp::child(target_invocation, bp::std_out > bp::null, bp::std_err > bp::null);
+    bp::child target = bp::child(target_invocation, bp::std_out > stdout, bp::std_err > stderr);
     if (!wait_for_wrapper(target, std::chrono::milliseconds(timeout_ms))) {
         target.terminate();
         get_shared_memory().set_termination(target_termination::timeout);

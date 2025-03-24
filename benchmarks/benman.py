@@ -29,7 +29,7 @@ class Benchmark:
 
         self.src_file = os.path.join(self.work_dir, self.fname)
         self.config_file = os.path.join(self.work_dir, self.name + ".json")
-        self.test_suite = os.path.join(self.work_dir, "test_suite")
+        self.test_suite = os.path.join(self.work_dir, "test-suite")
 
         with open(self.config_file, "rb") as fp:
             self.config = json.load(fp)
@@ -192,19 +192,24 @@ class Benchmark:
                 benman.driver_bin,
                 "--path_to_target", os.path.join(output_dir, self.instrumented_bin),
                 "--test_dir", self.test_suite,
+                "--output_dir", output_dir,
             ],
             output_dir
             )
 
         errors = []
         try:
-            outcomes_pathname = os.path.join(output_dir, self.name + "_outcomes.json")
+            outcomes_pathname = os.path.join(output_dir, "result.json")
             with open(outcomes_pathname, "rb") as fp:
                 outcomes = json.load(fp)
-            if self._check_outcomes(outcomes, self.config["results"], errors) is True:
-                ASSUMPTION(len(errors) == 0)
-                self.log("The outcomes are as expected => the test has PASSED.", "ok\n")
-                return True
+                expected = float (self.config["results"]["coverage"])
+                actual = float (outcomes["result"])
+                if expected == actual:
+                    return True
+            #if self._check_outcomes(outcomes, self.config["results"], errors) is True:
+            #    ASSUMPTION(len(errors) == 0)
+            #    self.log("The outcomes are as expected => the test has PASSED.", "ok\n")
+            #    return True
         except Exception as e:
             self.log("FAILURE due to an EXCEPTION: " + str(e), "EXCEPTION[" + str(e) + "]\n")
             return False
@@ -257,7 +262,7 @@ class Benman:
             ASSUMPTION(os.path.isfile(json_path),
                        f"Missing JSON configuration: {json_path}")
 
-            test_suite_dir = os.path.join(benchmark_dir, "test_suite")
+            test_suite_dir = os.path.join(benchmark_dir, "test-suite")
             ASSUMPTION(os.path.isdir(test_suite_dir),
                        f"Missing test_suite directory in {benchmark_dir}")
 
