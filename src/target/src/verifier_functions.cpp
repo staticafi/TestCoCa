@@ -9,7 +9,6 @@
 #   define INT128 __int128 
 #   define UINT128 unsigned __int128 
 #endif
-#include <stddef.h>
 
 static_assert(sizeof(bool) == 1, "sizeof(bool) != 1");
 

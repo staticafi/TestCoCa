@@ -41,10 +41,6 @@ void  input_model::load(shared_memory&  src)
     src.deliver_bytes(bytes.data(), num_bytes);
 }
 
-std::size_t input_model::min_flattened_size() const {
-    return sizeof(input_types_vector::value_type) + 1;
-}
-
 void  input_model::read(natural_8_bit*  ptr,
                                                 type_of_input_bits const type,
                                                 shared_memory& dest)
@@ -65,10 +61,10 @@ void  input_model::read(natural_8_bit*  ptr,
         exit(0);
     }
 
-    memcpy(ptr, bytes.data() + cursor, count);
+    //memcpy(ptr, bytes.data() + cursor, count);
 
     for (int i = count - 1; i >= 0; --i) {
-        ptr[count - 1 - i] = bytes[i];
+        ptr[count - 1 - i] = bytes[i + cursor];
     }
 
     cursor += count;

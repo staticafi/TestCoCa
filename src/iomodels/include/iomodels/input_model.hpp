@@ -18,7 +18,6 @@ struct input_model
     void  clear();
     void  save(connection::shared_memory&  dest) const;
     void  load(connection::shared_memory&  src);
-    std::size_t min_flattened_size() const;
     void  read(natural_8_bit*  ptr, instrumentation::type_of_input_bits  type, connection::shared_memory& dest);
 
     vecu8 const&  get_bytes() const { return bytes; }

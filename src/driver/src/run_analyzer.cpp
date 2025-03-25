@@ -11,7 +11,8 @@ void run_analyzer::add_execution(connection::shared_memory &src) {
 
     for (auto *br_info = static_cast<instrumentation::br_instr_coverage_info *>(mem);
          br_info->id != 0;
-         mem += 5, br_info = static_cast<instrumentation::br_instr_coverage_info *>(mem)) {
+         mem += sizeof(instrumentation::br_instr_coverage_info),
+         br_info = static_cast<instrumentation::br_instr_coverage_info *>(mem)) {
         if (auto it = coverage.find(br_info->id); it != coverage.end()) {
             if (it->second != instrumentation::BOTH &&
                 it->second != br_info->coverage) {

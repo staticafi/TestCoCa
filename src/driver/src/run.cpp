@@ -34,8 +34,8 @@ void run_test_suite() {
     for (const auto limit: {20, 100, 200}) { //TODO add
         executor->set_timeout(limit);
 
-        std::cout << "Running tests with timeout " << limit << std::endl;
         for (auto test_vec_it = inputs.begin(); test_vec_it != inputs.end();) {
+        std::cout << "Running tests with timeout " << limit << std::endl;
             auto size = test_vec_it->size();
 
             executor->get_shared_memory().clear();
