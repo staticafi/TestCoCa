@@ -64,7 +64,7 @@ unsigned short __VERIFIER_nondet_ushort() {
 int __VERIFIER_nondet_int() {
     int n;
     target->on_read((natural_8_bit*) &n, type_of_input_bits::SINT32);
-    std::cout << n << std::endl;
+    std::cout << "__VERIFIER_nondet_int: " << n << std::endl;
     return n;
 }
 

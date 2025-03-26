@@ -19,6 +19,8 @@ include_directories(${LLVM_INCLUDE_DIRS})
 
 target_link_libraries(${THIS_TARGET_NAME}
     utility
+    LLVMPasses
+    LLVMTransformUtils
     ${LLVM_LIBS}
     )
 

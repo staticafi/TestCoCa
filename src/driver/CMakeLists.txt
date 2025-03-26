@@ -13,7 +13,7 @@ add_executable(${THIS_TARGET_NAME}
     include/driver/test_parser.hpp
     src/test_parser.cpp
 
-    include/driver/run_analyzer.h
+    include/driver/run_analyzer.hpp
     src/run_analyzer.cpp
 )
 
@@ -21,6 +21,7 @@ target_link_libraries(${THIS_TARGET_NAME}
     target
     connection
     iomodels
+    target
     utility
     Threads::Threads
     ${Boost_LIBRARIES}

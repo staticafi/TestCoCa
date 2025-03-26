@@ -10,7 +10,7 @@ add_library(${THIS_TARGET_NAME}
         ./include/iomodels/configuration.hpp
     ./src/configuration.cpp
         ../driver/src/run_analyzer.cpp
-        ../driver/include/driver/run_analyzer.h
+        ../driver/include/driver/run_analyzer.hpp
 )
 
 set_target_properties(${THIS_TARGET_NAME} PROPERTIES

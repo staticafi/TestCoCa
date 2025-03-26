@@ -3,23 +3,9 @@
 #include <string>
 #include <vector>
 #include <filesystem>
-#include <set>
-#include <variant>
+#include <boost/unordered_set.hpp>
 
 #include "target/instrumentation_types.hpp"
-#include "utility/math.hpp"
-
-namespace TestDirParser {
-    using tests = std::set<vecu8>;
-    enum TestType {
-        COVERAGE,
-        BUG
-    };
-
-    std::pair<TestType, tests> parse(const std::string& test_dir);
-}
-
-
 
 class TestBuffer {
     std::vector<uint8_t> buffer;
@@ -29,15 +15,36 @@ public:
     TestBuffer();
     void write(auto val);
     uint64_t size() const;
-    std::vector<uint8_t>& get_buffer() ;
+    const uint8_t *data() const;
+
+    bool operator==(const TestBuffer& other) const {
+        return buffer == other.buffer;  // Essential for hash containers
+    }
+
+    friend size_t hash_value(const TestBuffer& buf) {
+        return boost::hash_range(buf.buffer.begin(), buf.buffer.end());
+    }
 };
+
+namespace TestDirParser {
+    using tests = boost::unordered_set<TestBuffer>;
+    enum TestType {
+        COVERAGE,
+        BUG
+    };
+
+    std::pair<TestType, tests> parse_dir(const std::string& test_dir);
+
+    TestBuffer parse_test(const std::filesystem::path& test_path);
+}
+
+
+
 
 
 /*
 class Parser {
 public:
-    using int128_t = __int128;
-    using uint128_t = unsigned __int128;
     using loff_t = int64_t;
     using sector_t = uint64_t;
     using pchar = char*;

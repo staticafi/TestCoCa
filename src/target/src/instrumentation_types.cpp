@@ -61,7 +61,7 @@ type_of_input_bits from_string(std::string&& type_str) {
 }
 
 
-natural_8_bit  num_bytes(type_of_input_bits const  type)
+natural_8_bit num_bytes(type_of_input_bits type)
 {
     switch (type)
     {

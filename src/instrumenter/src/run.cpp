@@ -1,12 +1,11 @@
 #include <llvm/DebugInfo/DIContext.h>
+#include <llvm/Transforms/Utils.h>
 #include <llvm/IR/DebugInfo.h>
 #include <llvm/IR/Function.h>
-#include <llvm/IR/GlobalValue.h>
-#include <llvm/IR/Instruction.h>
+#include <llvm/Passes/PassBuilder.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
-#include <llvm/IR/Type.h>
-#include <llvm/IR/Value.h>
+#include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/raw_os_ostream.h>
@@ -16,7 +15,6 @@
 #include <iostream>
 #include <instrumenter/llvm_instrumenter.hpp>
 #include <memory>
-#include <instrumenter/program_info.hpp>
 #include <instrumenter/program_options.hpp>
 #include <utility/config.hpp>
 #include <utility/timeprof.hpp>
@@ -66,6 +64,11 @@ void run(int argc, char* argv[])
             return;
         }
     }
+
+    // remove switch statements from llvm IR
+    llvm::legacy::PassManager passManager;
+    passManager.add(llvm::createLowerSwitchPass());
+    passManager.run(*M);
 
     llvm_instrumenter instrumenter;
     instrumenter.doInitialization(M.get());

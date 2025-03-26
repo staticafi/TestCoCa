@@ -7,7 +7,7 @@
 #include <boost/property_tree/ptree_fwd.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
-#include "driver/run_analyzer.h"
+#include "driver/run_analyzer.hpp"
 #include "driver/test_parser.hpp"
 
 
@@ -23,26 +23,29 @@ void run_test_suite() {
     const auto executor = std::make_shared<connection::target_executor>(
         get_program_options()->value("path_to_target"));
 
-    Parser parser(get_program_options()->value("test_dir"));
+    auto [test_type, tests] = TestDirParser::parse_dir(get_program_options()->value("test_dir"));
+
+    std::cout << "tests count: " << tests.size() << std::endl;
 
     run_analyzer analyzer;
 
     //TODO size?
     executor->init_shared_memory(100);
 
-    std::set inputs = parser.get_inputs();
-    for (const auto limit: {20, 100, 200}) { //TODO add
+    for (const auto limit: {20, 100, 500}) { //TODO add
         executor->set_timeout(limit);
 
-        for (auto test_vec_it = inputs.begin(); test_vec_it != inputs.end();) {
+        for (auto test_buf_it = tests.begin(); test_buf_it != tests.end();) {
         std::cout << "Running tests with timeout " << limit << std::endl;
-            auto size = test_vec_it->size();
+            auto size = test_buf_it->size();
 
             executor->get_shared_memory().clear();
 
-            executor->get_shared_memory() << static_cast<natural_32_bit>(size);
-            executor->get_shared_memory().accept_bytes(test_vec_it->data(), size);
+            executor->get_shared_memory() << (uint32_t)size;
+            executor->get_shared_memory().accept_bytes(test_buf_it->data(), size);
+
             std::cout << "test loaded into shared memory" << std::endl;
+
             executor->get_shared_memory().print();
             executor->execute_target();
             executor->get_shared_memory().print();
@@ -52,9 +55,9 @@ void run_test_suite() {
             if (executor->get_shared_memory().get_termination() == instrumentation::target_termination::normal ||
                 executor->get_shared_memory().get_termination() == instrumentation::target_termination::ver_error_reached)
             {
-                inputs.erase(test_vec_it++);
+                tests.erase(test_buf_it++);
             } else {
-                ++test_vec_it;
+                ++test_buf_it;
             }
 
         }

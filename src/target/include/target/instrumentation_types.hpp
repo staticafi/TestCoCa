@@ -50,10 +50,10 @@ enum struct type_of_input_bits : natural_8_bit
     UNTYPED64 = 14U
 };
 
-type_of_input_bits  from_id(natural_8_bit  id);
-type_of_input_bits  from_string(std::string&&);
-natural_8_bit  num_bytes(type_of_input_bits  type);
-bool is_float(type_of_input_bits  type);
-bool is_signed(type_of_input_bits  type);
+type_of_input_bits from_id(natural_8_bit id);
+type_of_input_bits from_string(std::string&&);
+natural_8_bit num_bytes(type_of_input_bits type);
+bool is_float(type_of_input_bits type);
+bool is_signed(type_of_input_bits type);
 
 }

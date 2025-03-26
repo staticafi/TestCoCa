@@ -35,7 +35,7 @@ void  input_model::save(shared_memory& dest) const
 
 void  input_model::load(shared_memory&  src)
 {
-    byte_count_type  num_bytes;
+    byte_count_type num_bytes;
     src >> num_bytes;
     bytes.resize(num_bytes);
     src.deliver_bytes(bytes.data(), num_bytes);
@@ -46,7 +46,6 @@ void  input_model::read(natural_8_bit*  ptr,
                                                 shared_memory& dest)
 {
     natural_8_bit const count = num_bytes(type);
-
 
     if (cursor + count > max_bytes()) {
         dest.set_termination(target_termination::boundary_condition_violation);
@@ -61,11 +60,13 @@ void  input_model::read(natural_8_bit*  ptr,
         exit(0);
     }
 
-    //memcpy(ptr, bytes.data() + cursor, count);
+    memcpy(ptr, bytes.data() + cursor, count);
 
+    /*
     for (int i = count - 1; i >= 0; --i) {
         ptr[count - 1 - i] = bytes[i + cursor];
     }
+    */
 
     cursor += count;
 }
