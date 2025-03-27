@@ -1,5 +1,5 @@
 include_directories(
-    "target/include"
+    "${PROJECT_SOURCE_DIR}/src/target/include"
     "${PROJECT_SOURCE_DIR}/src/instrumenter/include"
     "${PROJECT_SOURCE_DIR}/src/connection/include"
     "${PROJECT_SOURCE_DIR}/src/iomodels/include"
@@ -9,20 +9,20 @@ include_directories(
 
 message("Including the following libraries to the build:")
 
-message("       utility")
+message("utility")
 add_subdirectory(./utility)
 
-message("       iomodels")
+message("iomodels")
 add_subdirectory(./iomodels)
 
-message("       connection")
+message("connection")
 add_subdirectory(./connection)
 
 message("target")
-add_subdirectory(target)
+add_subdirectory(./target)
 
-message("       instrumenter")
+message("instrumenter")
 add_subdirectory(./instrumenter)
 
-message("       driver")
-add_subdirectory(driver)
+message("driver")
+add_subdirectory(./driver)

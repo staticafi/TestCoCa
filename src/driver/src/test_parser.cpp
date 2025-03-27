@@ -22,10 +22,11 @@ void TestBuffer::write(auto val)
 {
     std::cout << "writing value: " << val << std::endl;
 
-    if (buffer.capacity() < offset + sizeof(val)) {
+    if (buffer.capacity() < offset + sizeof(val) + 1) {
         buffer.reserve(buffer.capacity() * 2);
     }
 
+    buffer[offset++] = sizeof(val);
     memcpy(buffer.data() + offset, &val, sizeof(val));
     offset += sizeof(val);
 
@@ -52,6 +53,46 @@ std::pair<TestType, tests> parse_dir(
     return {COVERAGE, tests};
 }
 
+void write_untyped(TestBuffer& buffer, const std::string& value_str) {
+    try {
+        uint8_t val = boost::numeric_cast<uint8_t>(boost::lexical_cast<uint16_t>(value_str));
+        buffer.write(val);
+        return;
+    } catch (...) {}
+    try {
+        uint16_t val = boost::lexical_cast<uint16_t>(value_str);
+        buffer.write(val);
+        return;
+    } catch (boost::bad_lexical_cast&) {}
+    try {
+        uint32_t val = boost::lexical_cast<uint32_t>(value_str);
+        buffer.write(val);
+        return;
+    } catch (boost::bad_lexical_cast&) {}
+    try {
+        uint64_t val = boost::lexical_cast<uint64_t>(value_str);
+        buffer.write(val);
+        return;
+    } catch (boost::bad_lexical_cast&) {}
+    try {
+        unsigned __int128 val = boost::lexical_cast<uint8_t>(value_str);
+        buffer.write((uint64_t*)(&val)[0]);
+        buffer.write((uint64_t*)(&val)[1]);
+        return;
+    } catch (boost::bad_lexical_cast&) {}
+    try {
+        float val = boost::lexical_cast<float>(value_str);
+        buffer.write(val);
+        return;
+    } catch (boost::bad_lexical_cast&) {}
+    try {
+        double val = boost::lexical_cast<double>(value_str);
+        buffer.write(val);
+        return;
+    } catch (boost::bad_lexical_cast&) {}
+    throw std::runtime_error("Failed to parse " + value_str);
+}
+
 void write_typed(TestBuffer& buffer, const std::string& type_str,
                            const std::string& value_str)
 {
@@ -60,23 +101,23 @@ void write_typed(TestBuffer& buffer, const std::string& type_str,
             buffer.write(boost::lexical_cast<bool>(value_str));
         if (type_str == "char")
             buffer.write((char)boost::lexical_cast<int>(value_str));
-        if (type_str == "uchar")
+        if (type_str == "uchar" || type_str == "unsigned char")
             buffer.write((unsigned char)boost::lexical_cast<unsigned int>(value_str));
         if (type_str == "short")
             buffer.write(boost::lexical_cast<short>(value_str));
-        if (type_str == "ushort")
+        if (type_str == "ushort" || type_str == "unsigned short")
             buffer.write(boost::lexical_cast<unsigned short>(value_str));
         if (type_str == "int")
             buffer.write(boost::lexical_cast<int>(value_str));
-        if (type_str == "uint")
+        if (type_str == "uint" || type_str == "unsigned int")
             buffer.write(boost::lexical_cast<unsigned int>(value_str));
         if (type_str == "long")
             buffer.write(boost::lexical_cast<long>(value_str));
-        if (type_str == "ulong")
+        if (type_str == "ulong" || type_str == "unsigned long")
             buffer.write(boost::lexical_cast<unsigned long>(value_str));
         if (type_str == "longlong")
             buffer.write(boost::lexical_cast<long long>(value_str));
-        if (type_str == "ulonglong")
+        if (type_str == "ulonglong" || type_str == "unsigned long long")
             buffer.write(boost::lexical_cast<unsigned long long>(value_str));
         if (type_str == "float")
             buffer.write(boost::lexical_cast<float>(value_str));
@@ -92,21 +133,18 @@ void write_typed(TestBuffer& buffer, const std::string& type_str,
             buffer.write(boost::lexical_cast<pthread_t>(value_str));
         if (type_str == "u32")
             buffer.write(boost::lexical_cast<uint32_t>(value_str));
-        /*
-#if CPU_TYPE == CPU64
-        if (type_str == "int128")
-            buffer.write(boost::lexical_cast<__int128_t>(value_str));
-        if (type_str == "uint128")
-            buffer.write(boost::lexical_cast<unsigned __int128_t>(value_str));
-
         if (type_str == "pchar")
             buffer.write(boost::lexical_cast<uint64_t>(value_str));
-#else
-        if (type_str == "pchar")
-            buffer.write(boost::lexical_cast<uint32_t>(value_str));
-#endif
-*/
-
+        if (type_str == "int128") {
+            __int128 num = boost::lexical_cast<__int128>(value_str);
+            buffer.write((uint64_t*)(&num)[0]);
+            buffer.write((uint64_t*)(&num)[1]);
+        }
+        if (type_str == "uint128") {
+            unsigned __int128 num = boost::lexical_cast<unsigned __int128>(value_str);
+            buffer.write((uint64_t*)(&num)[0]);
+            buffer.write((uint64_t*)(&num)[1]);
+        }
     } catch (const boost::bad_lexical_cast& e) {
         throw std::runtime_error("Failed to parse " + value_str + " as " +
                                  type_str + ": " + e.what());
@@ -129,17 +167,11 @@ TestBuffer parse_test(const std::filesystem::path& test_path)
 
         if (!type_str.empty()) {
             write_typed(buffer, type_str, node.data());
-            continue;
+        } else {
+            write_untyped(buffer, node.data());
         }
     }
 
     return buffer;
 }
 }  // namespace TestParser
-
-/*
-
-
-
-
-        */

@@ -31,18 +31,21 @@ extern "C" {
 char __VERIFIER_nondet_char() {
     char n;
     target->on_read((natural_8_bit*) &n, type_of_input_bits::SINT8);
+    std::cout << "__VERIFIER_nondet_int: " << n << std::endl;
     return n;
 }
 
 unsigned char __VERIFIER_nondet_uchar() {
     unsigned char n;
     target->on_read((natural_8_bit*) &n, type_of_input_bits::UINT8);
+    std::cout << "__VERIFIER_nondet_int: " << n << std::endl;
     return n;
 }
 
 _Bool __VERIFIER_nondet_bool() {
     char n;
     target->on_read((natural_8_bit*) &n, type_of_input_bits::BOOLEAN);
+    std::cout << "__VERIFIER_nondet_bool: " << n << std::endl;
     if (n > 0) {
         return true;
     }
@@ -52,12 +55,14 @@ _Bool __VERIFIER_nondet_bool() {
 short __VERIFIER_nondet_short() {
     short n;
     target->on_read((natural_8_bit*) &n, type_of_input_bits::SINT16);
+    std::cout << "__VERIFIER_nondet_short: " << n << std::endl;
     return n;
 }
 
 unsigned short __VERIFIER_nondet_ushort() {
     unsigned short n;
     target->on_read((natural_8_bit*) &n, type_of_input_bits::UINT16);
+    std::cout << "__VERIFIER_nondet_ushort: " << n << std::endl;
     return n;
 }
 
@@ -71,30 +76,35 @@ int __VERIFIER_nondet_int() {
 unsigned int __VERIFIER_nondet_uint() {
     unsigned int n;
     target->on_read((natural_8_bit*) &n, type_of_input_bits::UINT32);
+    std::cout << "__VERIFIER_nondet_uint: " << n << std::endl;
     return n;
 }
 
 long __VERIFIER_nondet_long() {
     long n;
     target->on_read((natural_8_bit*) &n, sizeof(n) == 4 ? type_of_input_bits::SINT32 : type_of_input_bits::SINT64);
+    std::cout << "__VERIFIER_nondet_long: " << n << std::endl;
     return n;
 }
 
 unsigned long __VERIFIER_nondet_ulong() {
     unsigned long n;
     target->on_read((natural_8_bit*) &n, sizeof(n) == 4 ? type_of_input_bits::UINT32 : type_of_input_bits::UINT64);
+    std::cout << "__VERIFIER_nondet_ulong: " << n << std::endl;
     return n;
 }
 
 long long int __VERIFIER_nondet_longlong() {
     long long int n;
     target->on_read((natural_8_bit*) &n, sizeof(n) == 4 ? type_of_input_bits::SINT32 : type_of_input_bits::SINT64);
+    std::cout << "__VERIFIER_nondet_longlong: " << n << std::endl;
     return n;
 }
 
 unsigned long long int __VERIFIER_nondet_ulonglong() {
     unsigned long long int n;
     target->on_read((natural_8_bit*) &n, sizeof(n) == 4 ? type_of_input_bits::UINT32 : type_of_input_bits::UINT64);
+    std::cout << "__VERIFIER_nondet_ulonglong: " << n << std::endl;
     return n;
 }
 

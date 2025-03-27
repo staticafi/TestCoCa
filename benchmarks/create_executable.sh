@@ -59,7 +59,7 @@ final_bin="${output_dir}/${output_bin}"
 
 # Generate LLVM IR
 echo "Generating LLVM IR from: $input_file"
-clang -S -emit-llvm -o "$ll_file" "$input_file" || {
+clang -S -O0 -emit-llvm -o "$ll_file" "$input_file" || {
     echo "Error: Failed to generate LLVM IR"
     exit 1
 }
@@ -75,7 +75,7 @@ echo "Instrumenting LLVM IR: $ll_file"
 
 # Build and link
 echo "Compiling instrumented code to: $final_bin"
-clang++ -O0 "$instr_ll" \
+clang++ -O3 "$instr_ll" \
     ../build/src/target/libtarget.a \
     ../build/src/connection/libconnection.a \
     ../build/src/iomodels/libiomodels.a \

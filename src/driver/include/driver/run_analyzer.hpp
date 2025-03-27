@@ -13,4 +13,5 @@ class run_analyzer {
    public:
     void add_execution(connection::shared_memory& src);
     float get_result();
+    void reset();
 };

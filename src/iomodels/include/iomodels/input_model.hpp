@@ -9,7 +9,7 @@ namespace  iomodels {
 
 struct input_model
 {
-    using byte_count_type    = natural_32_bit;
+    using byte_count_type    = uint64_t;
     using type_of_input_bits = instrumentation::type_of_input_bits;
     using input_types_vector = std::vector<type_of_input_bits>;
 

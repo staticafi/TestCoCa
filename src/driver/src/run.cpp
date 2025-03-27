@@ -11,12 +11,12 @@
 #include "driver/test_parser.hpp"
 
 
-void save_result_to_json(const std::string& filename, const auto& value) {
+void save_result_to_json(const std::string& filename, const auto& coverage) {
     boost::property_tree::ptree root;
 
-    root.put<float>("result", value);
+    root.put<float>("result", coverage);
 
-    boost::property_tree::write_json(filename, root, std::locale(), true);
+    write_json(filename, root, std::locale(), true);
 }
 
 void run_test_suite() {
@@ -41,7 +41,7 @@ void run_test_suite() {
 
             executor->get_shared_memory().clear();
 
-            executor->get_shared_memory() << (uint32_t)size;
+            executor->get_shared_memory() << (uint64_t)size;
             executor->get_shared_memory().accept_bytes(test_buf_it->data(), size);
 
             std::cout << "test loaded into shared memory" << std::endl;
@@ -66,7 +66,6 @@ void run_test_suite() {
 
     std::cout << "Coverage: " << analyzer.get_result() << std::endl;
     auto result_file = std::filesystem::path(get_program_options()->value("output_dir")).append("result.json");
-    std::cout << result_file << std::endl;
     save_result_to_json(result_file, analyzer.get_result());
 }
 
