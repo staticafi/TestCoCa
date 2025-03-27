@@ -1,0 +1,12 @@
+/build
+/dist
+/out
+/cmake-build-*
+/temp
+.idea
+.vscode
+.vs
+*.user
+**/__pycache__
+/CMakeSettings.json
+
