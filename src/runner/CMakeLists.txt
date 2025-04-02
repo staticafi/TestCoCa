@@ -33,7 +33,7 @@ set(DRIVER_FILE "$<TARGET_FILE_NAME:driver>")
 
 set(INSTRUMENTER_FILE "$<TARGET_FILE_NAME:instrumenter>")
 
-set(TARGET_NAME testCoCa.py)
+set(TARGET_NAME TestCoCa.py)
 
 configure_file(${TARGET_NAME} ${TARGET_NAME} @ONLY)
 file(

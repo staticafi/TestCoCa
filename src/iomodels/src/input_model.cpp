@@ -41,30 +41,6 @@ void  input_model::load(shared_memory&  src)
     src.deliver_bytes(bytes.data(), num_bytes);
 }
 
-void  input_model::read(natural_8_bit*  ptr,
-                                                type_of_input_bits const type,
-                                                shared_memory& dest)
-{
-    uint8_t const count = bytes[cursor++];
-
-    if (cursor + count > max_bytes()) {
-        dest.set_termination(target_termination::boundary_condition_violation);
-        exit(0);
-    }
-    if (!dest.can_accept_bytes(count + 2)) {
-        dest.set_termination(target_termination::medium_overflow);
-        exit(0);
-    }
-    if (cursor + count > bytes.size()) {
-        dest.set_termination(target_termination::insufficient_data);
-        exit(0);
-    }
-
-    memset(ptr, 0 , num_bytes(type));
-    memcpy(ptr, bytes.data() + cursor, count);
-
-    cursor += count;
-}
 
 input_model::byte_count_type input_model::max_bytes() const {
     return m_max_bytes;

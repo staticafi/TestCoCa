@@ -11,10 +11,26 @@
 #include "driver/test_parser.hpp"
 
 
-void save_result_to_json(const std::string& filename, const auto& coverage) {
+void save_results_to_json(const std::string& filename, const auto& results) {
     boost::property_tree::ptree root;
 
-    root.put<float>("result", coverage);
+    root.put<float>("result", results.first);
+
+    boost::property_tree::ptree coverage_node;
+    for (const auto& [key, value] : results.second) {
+        std::string key_str = std::to_string(key);
+        switch (value) {
+            case instrumentation::FALSE:
+                coverage_node.put<std::string>(key_str, "FALSE"); break;
+            case instrumentation::TRUE:
+                coverage_node.put<std::string>(key_str, "TRUE"); break;
+            case instrumentation::BOTH:
+                coverage_node.put<std::string>(key_str, "BOTH"); break;
+            default: ;
+        }
+    }
+
+    root.add_child("coverage", coverage_node);
 
     write_json(filename, root, std::locale(), true);
 }
@@ -32,7 +48,7 @@ void run_test_suite() {
     //TODO size?
     executor->init_shared_memory(100);
 
-    for (const auto limit: {20, 100, 500}) { //TODO add
+    for (const auto limit: {20, 100, 500}) {
         executor->set_timeout(limit);
 
         for (auto test_buf_it = tests.begin(); test_buf_it != tests.end();) {
@@ -63,10 +79,12 @@ void run_test_suite() {
         }
     }
 
+    auto results = analyzer.get_result();
 
-    std::cout << "Coverage: " << analyzer.get_result() << std::endl;
+    std::cout << "Coverage: " << results.first << std::endl;
+
     auto result_file = std::filesystem::path(get_program_options()->value("output_dir")).append("result.json");
-    save_result_to_json(result_file, analyzer.get_result());
+    save_results_to_json(result_file, results);
 }
 
 void run(int argc, char* argv[]) {

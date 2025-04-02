@@ -9,9 +9,6 @@ include_directories(
 
 message("Including the following libraries to the build:")
 
-message("utility")
-add_subdirectory(./utility)
-
 message("iomodels")
 add_subdirectory(./iomodels)
 
@@ -21,8 +18,21 @@ add_subdirectory(./connection)
 message("target")
 add_subdirectory(./target)
 
-message("instrumenter")
-add_subdirectory(./instrumenter)
 
-message("driver")
-add_subdirectory(./driver)
+if(BUILD_LIBS_32_BIT STREQUAL "No")
+    message("instrumenter")
+    add_subdirectory(./instrumenter)
+
+    message("driver")
+    add_subdirectory(./driver)
+
+    message("runner")
+    add_subdirectory(./runner)
+
+    set(LIBUTILITY_INSTALL_DIR "lib")
+else()
+    set(LIBUTILITY_INSTALL_DIR "lib32")
+endif()
+
+message("utility")
+add_subdirectory(./utility)

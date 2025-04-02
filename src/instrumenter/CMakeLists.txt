@@ -19,14 +19,8 @@ include_directories(${LLVM_INCLUDE_DIRS})
 
 target_link_libraries(${THIS_TARGET_NAME}
     utility
-    LLVMPasses
-    LLVMTransformUtils
     ${LLVM_LIBS}
     )
-
-if (LIBRT)
-    target_link_libraries(${THIS_TARGET_NAME} ${LIBRT})
-endif()
 
 
 set_target_properties(${THIS_TARGET_NAME} PROPERTIES
@@ -36,3 +30,6 @@ set_target_properties(${THIS_TARGET_NAME} PROPERTIES
     )
 
 install(TARGETS ${THIS_TARGET_NAME} DESTINATION "tools")
+install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Release/" OPTIONAL DESTINATION "tools" FILES_MATCHING PATTERN "*.dll")
+install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/RelWithDebInfo/" OPTIONAL DESTINATION "tools" FILES_MATCHING PATTERN "*.dll")
+install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Debug/" OPTIONAL DESTINATION "tools" FILES_MATCHING PATTERN "*.dll")

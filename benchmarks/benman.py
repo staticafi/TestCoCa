@@ -167,9 +167,9 @@ class Benchmark:
 
         self._execute_and_check_output(
             [
-                benman.target_builder,
-                "--input", self.src_file,
-                "--output", self.instrumented_bin,
+                benman.runner_script,
+                "--skip_testing",
+                "--input_file", self.src_file,
                 "--output_dir", output_dir,
             ] + (["--m32"] if "m32" in self.config["args"] and self.config["args"]["m32"] is True else []),
             output_dir
@@ -189,8 +189,9 @@ class Benchmark:
 
         self._execute(
             [
-                benman.driver_bin,
-                "--path_to_target", os.path.join(output_dir, self.instrumented_bin),
+                benman.runner_script,
+                "--skip_building",
+                "--input_file", self.src_file,
                 "--test_dir", self.test_suite,
                 "--output_dir", output_dir,
             ],
@@ -227,12 +228,12 @@ class Benchmark:
 
 class Benman:
     def __init__(self) -> None:
-        parser = argparse.ArgumentParser(description="Builds the target for the benchmark(s) or fuzz the benchmark(s).")
+        parser = argparse.ArgumentParser(description="Builds the target for the benchmark(s) or test the benchmark(s).")
         parser.add_argument("--clear", action='store_true', help="Clears the build files and outputs of the input benchmark(s).")
         parser.add_argument("--build", action='store_true', help="Builds the input benchmark(s).")
         parser.add_argument("--test", action='store_true', help="Test the coverage of input benchmark(s)")
         parser.add_argument("--input", help="Benchmark(s) to be processed. Possible values: "
-                                           "all, fast, fast/...")
+                                           "all, cover_branches, cover_error, cover_*/...")
         parser.add_argument("--verbose", action='store_true', help="Enables the verbose mode.")
         self.args = parser.parse_args()
 
@@ -240,11 +241,8 @@ class Benman:
         self.benchmarks_dir = os.getcwd()
         self.output_dir = os.path.normpath(os.path.join(self.benchmarks_dir, "..", "output", "benchmarks"))
 
-        #TODO make sure driver is compiled?
-        self.target_builder = os.path.join(self.benchmarks_dir, "create_executable.sh")
-        ASSUMPTION(os.path.isfile(self.target_builder), "The target builder script not found. Build and install the project first.")
-        self.driver_bin = os.path.join(self.benchmarks_dir, "..", "build", "src", "driver", "driver")
-        ASSUMPTION(os.path.isfile(self.driver_bin), "The driver binary not found. Build and install the project first.")
+        self.runner_script = os.path.join(self.benchmarks_dir, "..", "TestCoCa.py")
+        ASSUMPTION(os.path.isfile(self.runner_script), "The runner script not found. Build and install the project first.")
 
     def collect_benchmarks(self, name : str) -> list[str]:
         def complete_and_check_benchmark_path(benchmark_path : str) -> str:
@@ -286,7 +284,7 @@ class Benman:
                         benchmarks.append(complete_and_check_benchmark_path(os.path.join(folder, name)))
             return benchmarks
 
-        kinds = ["fast"]
+        kinds = ["cover_branches", "cover_error"]
         benchmarks = []
         if name == "all":
             for kind in kinds:
@@ -299,7 +297,7 @@ class Benman:
 
     def build(self, name : str) -> bool:
         for pathname in self.collect_benchmarks(name):
-            benchmark = Benchmark(pathname, self.driver_bin, self.args.verbose)
+            benchmark = Benchmark(pathname, self.runner_script, self.args.verbose)
             benchmark.build(self.benchmarks_dir, self.output_dir)
         return True
 
@@ -307,7 +305,7 @@ class Benman:
         num_failures = 0
         benchmark_paths = self.collect_benchmarks(name)
         for pathname in benchmark_paths:
-            benchmark = Benchmark(pathname, self.driver_bin, self.args.verbose)
+            benchmark = Benchmark(pathname, self.runner_script, self.args.verbose)
             if not benchmark.test(self.benchmarks_dir, self.output_dir):
                 num_failures += 1
         if num_failures > 0:
@@ -319,7 +317,7 @@ class Benman:
 
     def clear(self, name : str) -> None:
         for pathname in self.collect_benchmarks(name):
-            benchmark = Benchmark(pathname, self.driver_bin, self.args.verbose)
+            benchmark = Benchmark(pathname, self.runner_script, self.args.verbose)
             benchmark.clear(self.benchmarks_dir, self.output_dir)
 
     def run(self) -> bool:

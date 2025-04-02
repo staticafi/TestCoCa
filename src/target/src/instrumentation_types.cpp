@@ -36,11 +36,6 @@ type_of_input_bits  from_id(natural_8_bit const  id)
         case  9U: return type_of_input_bits::FLOAT32;
         case 10U: return type_of_input_bits::FLOAT64;
 
-        case 11U: return type_of_input_bits::UNTYPED8;
-        case 12U: return type_of_input_bits::UNTYPED16;
-        case 13U: return type_of_input_bits::UNTYPED32;
-        case 14U: return type_of_input_bits::UNTYPED64;
-
         default: { UNREACHABLE(); return type_of_input_bits::UINT8; }
     }
 }
@@ -68,21 +63,17 @@ natural_8_bit num_bytes(type_of_input_bits type)
         case type_of_input_bits::BOOLEAN:
         case type_of_input_bits::UINT8:
         case type_of_input_bits::SINT8:
-        case type_of_input_bits::UNTYPED8:
             return 1U;
         case type_of_input_bits::UINT16:
         case type_of_input_bits::SINT16:
-        case type_of_input_bits::UNTYPED16:
             return 2U;
         case type_of_input_bits::UINT32:
         case type_of_input_bits::SINT32:
         case type_of_input_bits::FLOAT32:
-        case type_of_input_bits::UNTYPED32:
             return 4U;
         case type_of_input_bits::UINT64:
         case type_of_input_bits::SINT64:
         case type_of_input_bits::FLOAT64:
-        case type_of_input_bits::UNTYPED64:
             return 8U;
         default: { UNREACHABLE(); return 0U; }
     }

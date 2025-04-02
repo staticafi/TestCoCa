@@ -39,7 +39,6 @@ endif()
 message("Build only 32-bit libraries: " ${BUILD_LIBS_32_BIT})
 
 if(BUILD_LIBS_32_BIT STREQUAL "Yes")
-    # TODO ??
     set(BUILD_ALSO_TOOLS "No")
 endif()
 
@@ -48,12 +47,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
     message("Compiler = GCC")
-    if(FIZZ_BUILD_LIBS_32_BIT STREQUAL "Yes")
+    if(BUILD_LIBS_32_BIT STREQUAL "Yes")
         append_build_flags("-m32")
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     message("Compiler = Clang/LLVM")
-    if(FIZZ_BUILD_LIBS_32_BIT STREQUAL "Yes")
+    if(BUILD_LIBS_32_BIT STREQUAL "Yes")
         append_build_flags("-m32")
     endif()
 else()
@@ -76,7 +75,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 set(BOOST_LIST_OF_LIBRARIES_TO_LINK_WITH "${Boost_LIBRARIES}")
 
 find_package(LLVM REQUIRED CONFIG)
-llvm_map_components_to_libnames(LLVM_LIBS core support irreader transformutils)
+llvm_map_components_to_libnames(LLVM_LIBS Core Passes)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LT_LLVM_INSTALL_DIR}")

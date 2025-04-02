@@ -13,7 +13,7 @@ class TestBuffer {
 
 public:
     TestBuffer();
-    void write(auto val);
+    void write(auto val, instrumentation::type_of_input_bits type);
     uint64_t size() const;
     const uint8_t *data() const;
 

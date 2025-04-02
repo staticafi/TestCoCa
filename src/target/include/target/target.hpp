@@ -5,7 +5,6 @@
 #include <target/instrumentation_types.hpp>
 #include <iomodels/configuration.hpp>
 #include <memory>
-#include <utility/basic_numeric_types.hpp>
 
 #include "iomodels/input_model.hpp"
 
@@ -26,10 +25,15 @@ class target {
     void process_br_instr(br_instr_id id, condition_coverage covered_branch);
     void process_ver_error();
 
-    void on_read(natural_8_bit* ptr, type_of_input_bits type);
-
     void load_stdin();
     void load_config();
+
+    template<typename T>
+    void on_read(T* ptr, type_of_input_bits const type)
+    {
+        std::lock_guard lock(mutex);
+        stdin_model->read(ptr, shared_memory);
+    }
 };
 
 extern std::unique_ptr<target> target;

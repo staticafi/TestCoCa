@@ -51,12 +51,6 @@ void target::process_ver_error()
     exit(0);
 }
 
-void target::on_read(natural_8_bit* ptr, type_of_input_bits const type)
-{
-    std::lock_guard lock(mutex);
-    stdin_model->read(ptr, type, shared_memory);
-}
-
 void target::load_stdin()
 {
     stdin_model->load(shared_memory);
