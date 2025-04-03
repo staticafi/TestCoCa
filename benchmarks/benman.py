@@ -169,6 +169,8 @@ class Benchmark:
             [
                 benman.runner_script,
                 "--skip_testing",
+                "--inst_br",
+                "--inst_err", "reach_error",
                 "--input_file", self.src_file,
                 "--output_dir", output_dir,
             ] + (["--m32"] if "m32" in self.config["args"] and self.config["args"]["m32"] is True else []),

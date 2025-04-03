@@ -141,12 +141,10 @@ def main():
     silent_mode = False
     use_m32 = False
     options = []
-    options_instument = []
     i = 1
 
     while i < len(sys.argv):
         arg = sys.argv[i]
-        print("arg: ", arg)
         if arg == "--help":
             help(self_dir)
             return
@@ -186,7 +184,7 @@ def main():
         if input_file is None:
             raise Exception("Cannot find the input file.")
         if skip_building is False:
-            build(self_dir, input_file, output_dir, options_instument, use_m32, silent_mode)
+            build(self_dir, input_file, output_dir, options, use_m32, silent_mode)
         if skip_testing is False:
             if test_dir is None:
                 raise Exception("Cannot find the test directory")

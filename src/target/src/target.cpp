@@ -21,13 +21,12 @@ void target::process_br_instr(const br_instr_id id, const condition_coverage cov
         exit(0);
     }
 
-    //TODO insert
     auto [it, inserted] = index_map.insert({id, index});
 
     auto i = it->second;
 
     auto mem = (br_instr_coverage_info*)(shared_memory.get_memory() +
-                sizeof(instrumentation::target_termination) * 2 +
+                sizeof(target_termination) * 2 +
                 sizeof(natural_32_bit));
 
     if (inserted) {

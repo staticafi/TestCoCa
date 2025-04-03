@@ -45,6 +45,23 @@ void run(int argc, char* argv[])
         return;
     }
 
+    bool instBr = get_program_options()->has("inst_br");
+    bool instErr = get_program_options()->has("inst_err");
+
+    if (!instBr && !instErr) {
+        std::cout << "No instrumentation type selected (--inst_br or --inst_err <func>)" << std::endl;
+        return;
+    }
+
+    std::string targetFunc;
+
+    if (instErr && (targetFunc = get_program_options()->value("inst_err")).empty()) {
+        std::cout << "InstErr option picked but no function specified" << std::endl;
+        return;
+    }
+
+
+
     llvm::SMDiagnostic D;
     llvm::LLVMContext C;
     std::unique_ptr<llvm::Module> M;
@@ -72,8 +89,10 @@ void run(int argc, char* argv[])
     llvm_instrumenter instrumenter;
     instrumenter.doInitialization(M.get());
     instrumenter.renameFunctions();
-    for (auto & it : *M)
-        instrumenter.runOnFunction(it);
+
+    for (auto & it : *M) {
+        instrumenter.runOnFunction(it, instBr, instErr,  targetFunc);
+    }
 
     instrumenter.addCondBrCount();
 

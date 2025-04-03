@@ -3,6 +3,8 @@
 #include <driver/test_parser.hpp>
 #include <filesystem>
 #include <iostream>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/process/filesystem.hpp>
 
 using namespace instrumentation;
 
@@ -22,8 +24,6 @@ uint64_t TestBuffer::size() const
 
 void TestBuffer::write(auto val, type_of_input_bits type)
 {
-    std::cout << "writing value: " << (int)val << std::endl;
-
     if (buffer.capacity() < offset + sizeof(val) + 1) {
         buffer.reserve(buffer.capacity() * 2);
     }
@@ -35,10 +35,26 @@ void TestBuffer::write(auto val, type_of_input_bits type)
 
 namespace TestDirParser {
 
+TestType getTestType(std::filesystem::path& path) {
+    if (!is_regular_file(path))
+        throw std::runtime_error("metadata.xml file not found");
+
+    std::ifstream file(path);
+    std::string content(
+        (std::istreambuf_iterator<char>(file)),
+        std::istreambuf_iterator<char>()
+    );
+
+    return boost::algorithm::contains(content, "@DECISIONEDGE") ? COVERAGE : CALL;
+}
+
 std::pair<TestType, tests> parse_dir(
     const std::string& dir_path)
 {
     std::cout << "Parsing test directory: " << dir_path << std::endl;
+
+    std::filesystem::path metadata_path(dir_path + "/metadata.xml");
+    auto test_type = getTestType(metadata_path);
 
     tests tests;
     for (auto file : std::filesystem::directory_iterator(dir_path)) {
@@ -47,7 +63,7 @@ std::pair<TestType, tests> parse_dir(
         }
     }
 
-    return {COVERAGE, tests};
+    return {test_type, tests};
 }
 
 void write_untyped(TestBuffer& buffer, const std::string& value_str) {
@@ -62,6 +78,12 @@ void write_untyped(TestBuffer& buffer, const std::string& value_str) {
             buffer.write(val, type_of_input_bits::SINT64);
             return;
         } catch (boost::bad_lexical_cast&) {}
+        try {
+            __int128 val = boost::lexical_cast<uint8_t>(value_str);
+            buffer.write((uint64_t*)(&val)[0], type_of_input_bits::SINT64);
+            buffer.write((uint64_t*)(&val)[1], type_of_input_bits::UINT64);
+            return;
+        } catch (boost::bad_lexical_cast&) {}
     }
     else {
         try {
@@ -74,16 +96,13 @@ void write_untyped(TestBuffer& buffer, const std::string& value_str) {
             buffer.write(val, type_of_input_bits::UINT64);
             return;
         } catch (boost::bad_lexical_cast&) {}
+        try {
+            unsigned __int128 val = boost::lexical_cast<uint8_t>(value_str);
+            buffer.write((uint64_t*)(&val)[0], type_of_input_bits::UINT64);
+            buffer.write((uint64_t*)(&val)[1], type_of_input_bits::UINT64);
+            return;
+        } catch (boost::bad_lexical_cast&) {}
     }
-    try {
-        //TODO test
-        /*
-        unsigned __int128 val = boost::lexical_cast<uint8_t>(value_str);
-        buffer.write((uint64_t*)(&val)[0]);
-        buffer.write((uint64_t*)(&val)[1]);
-        return;
-        */
-    } catch (boost::bad_lexical_cast&) {}
 
     try {
         double val = boost::lexical_cast<double>(value_str);
@@ -113,7 +132,7 @@ void write_typed(TestBuffer& buffer, const std::string& type_str,
         if (type_str == "uint" || type_str == "unsigned int")
             buffer.write(boost::lexical_cast<unsigned int>(value_str), type_of_input_bits::UINT32);
         if (type_str == "long")
-            buffer.write(boost::lexical_cast<long>(value_str), (sizeof(long) == 4 ? type_of_input_bits::SINT32 : type_of_input_bits::SINT64));
+            buffer.write(boost::lexical_cast<long>(value_str), sizeof(long) == 4 ? type_of_input_bits::SINT32 : type_of_input_bits::SINT64);
         if (type_str == "ulong" || type_str == "unsigned long")
             buffer.write(boost::lexical_cast<unsigned long>(value_str), sizeof(long) == 4 ? type_of_input_bits::UINT32 : type_of_input_bits::UINT64);
         if (type_str == "longlong")
@@ -134,27 +153,19 @@ void write_typed(TestBuffer& buffer, const std::string& type_str,
             buffer.write(boost::lexical_cast<pthread_t>(value_str), sizeof(loff_t) == 4 ? type_of_input_bits::UINT32 : type_of_input_bits::UINT64);
         if (type_str == "u32")
             buffer.write(boost::lexical_cast<uint32_t>(value_str), type_of_input_bits::UINT32);
-
-        #if CPU_TYPE == CPU64
         if (type_str == "pchar")
             buffer.write(boost::lexical_cast<uint64_t>(value_str), type_of_input_bits::UINT64);
-        #else
-        if (type_str == "pchar")
-            buffer.write(boost::lexical_cast<uint32_t>(value_str), type_of_input_bits::UINT32);
-        #endif
 
-        /*
         if (type_str == "int128") {
             __int128 num = boost::lexical_cast<__int128>(value_str);
-            buffer.write((uint64_t*)(&num)[0]);
-            buffer.write((uint64_t*)(&num)[1]);
+            buffer.write((uint64_t*)(&num)[0], type_of_input_bits::SINT64);
+            buffer.write((uint64_t*)(&num)[1], type_of_input_bits::SINT64);
         }
         if (type_str == "uint128") {
             unsigned __int128 num = boost::lexical_cast<unsigned __int128>(value_str);
-            buffer.write((uint64_t*)(&num)[0]);
-            buffer.write((uint64_t*)(&num)[1]);
+            buffer.write((int64_t*)(&num)[0], type_of_input_bits::SINT64);
+            buffer.write((uint64_t*)(&num)[1], type_of_input_bits::SINT64);
         }
-        */
 
     } catch (const boost::bad_lexical_cast& e) {
         throw std::runtime_error("Failed to parse " + value_str + " as " +

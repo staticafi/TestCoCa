@@ -7,6 +7,8 @@ program_options::program_options(int argc, char* argv[])
 {
     add_option("input", "Pathname to the input .ll file.", "1");
     add_option("output", "Pathname to the output .ll file where the instrumented version of the input file will be stored.", "1");
+    add_option("inst_br", "Instrument branch instructions", "0");
+    add_option("inst_err", "Instrument target error function specified by value", "1");
 }
 
 static program_options_ptr  global_program_options;

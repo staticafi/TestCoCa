@@ -1,8 +1,11 @@
+#include <iostream>
 #include <llvm/IR/InstIterator.h>
 
 #include <unordered_set>
 #include <instrumenter/llvm_instrumenter.hpp>
 #include <utility/timeprof.hpp>
+
+#include "instrumenter/program_options.hpp"
 
 using namespace llvm;
 
@@ -33,7 +36,6 @@ bool llvm_instrumenter::doInitialization(Module* M)
 void llvm_instrumenter::renameFunctions() const {
     TMPROF_BLOCK();
 
-    std::string const renamePrefix{"__qmi_rename_prefix__"};
     for (auto & fn : *module) {
         if (!fn.isDeclaration() && fn.getName() != "main")
             fn.setName(renamePrefix + fn.getName());
@@ -49,10 +51,9 @@ void llvm_instrumenter::instrumentCondBr(BranchInst* brInst) const {
     builder.CreateCall(processCondBrFunc, {location, cond});
 }
 
-void llvm_instrumenter::instrumentVerifierError(BranchInst* brInst) const {
-    IRBuilder builder(brInst);
-    Value* location = ConstantInt::get(Int32Ty, basicBlockCounter);
-    builder.CreateCall(processVerErrFunc, {location});
+void llvm_instrumenter::instrumentVerifierError(CallInst* callInst) const {
+    IRBuilder builder(callInst);
+    builder.CreateCall(processVerErrFunc);
 }
 
 void llvm_instrumenter::addCondBrCount() const {
@@ -67,7 +68,7 @@ void llvm_instrumenter::addCondBrCount() const {
     br_count->setAlignment(Align(4));
 }
 
-bool llvm_instrumenter::runOnFunction(Function& F)
+bool llvm_instrumenter::runOnFunction(Function& F, bool instBr, bool instErr, std::string& targetFunc)
 {
     TMPROF_BLOCK();
 
@@ -77,20 +78,32 @@ bool llvm_instrumenter::runOnFunction(Function& F)
 
     if (F.getName() == "main") {
         F.setName("__qmi_original_main");
-
     }
 
     for (BasicBlock& BB : F) {
         ++basicBlockCounter;
         BB.setName("bb" + std::to_string(basicBlockCounter));
 
-        auto* brInst = dyn_cast<BranchInst>(BB.getTerminator());
-        if (!brInst || !brInst->isConditional()) {
-            continue;
+        if (instErr) {
+            for (auto& I: BB) {
+                if (isa<CallInst>(I)) {
+                    StringRef name = cast<CallInst>(I).getCalledFunction()->getName();
+                    if (name == renamePrefix + targetFunc) {
+                        instrumentVerifierError(dyn_cast<CallInst>(&I));
+                    }
+                }
+            }
         }
 
-        ++condBrCounter;
-        instrumentCondBr(brInst);
+        if (instBr) {
+            auto* brInst = dyn_cast<BranchInst>(BB.getTerminator());
+            if (!brInst || !brInst->isConditional()) {
+                continue;
+            }
+
+            ++condBrCounter;
+            instrumentCondBr(brInst);
+        }
 
     }
     return true;

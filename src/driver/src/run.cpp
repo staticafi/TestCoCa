@@ -1,17 +1,17 @@
+#include <boost/process/exe.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree_fwd.hpp>
 #include <connection/target_executor.hpp>
-#include <iomodels/iomanager.hpp>
-#include <iostream>
 #include <driver/program_options.hpp>
 #include <filesystem>
-#include <boost/process/exe.hpp>
-#include <boost/property_tree/ptree_fwd.hpp>
-#include <boost/property_tree/json_parser.hpp>
+#include <iomodels/iomanager.hpp>
+#include <iostream>
 
 #include "driver/run_analyzer.hpp"
 #include "driver/test_parser.hpp"
 
-
-void save_results_to_json(const std::string& filename, const auto& results) {
+void save_results_to_json(const std::string& filename, const std::pair<double, coverage_map>& results)
+{
     boost::property_tree::ptree root;
 
     root.put<float>("result", results.first);
@@ -21,12 +21,15 @@ void save_results_to_json(const std::string& filename, const auto& results) {
         std::string key_str = std::to_string(key);
         switch (value) {
             case instrumentation::FALSE:
-                coverage_node.put<std::string>(key_str, "FALSE"); break;
+                coverage_node.put<std::string>(key_str, "FALSE");
+                break;
             case instrumentation::TRUE:
-                coverage_node.put<std::string>(key_str, "TRUE"); break;
+                coverage_node.put<std::string>(key_str, "TRUE");
+                break;
             case instrumentation::BOTH:
-                coverage_node.put<std::string>(key_str, "BOTH"); break;
-            default: ;
+                coverage_node.put<std::string>(key_str, "BOTH");
+                break;
+            default:;
         }
     }
 
@@ -35,59 +38,75 @@ void save_results_to_json(const std::string& filename, const auto& results) {
     write_json(filename, root, std::locale(), true);
 }
 
-void run_test_suite() {
+void run_test_suite()
+{
     const auto executor = std::make_shared<connection::target_executor>(
         get_program_options()->value("path_to_target"));
 
-    auto [test_type, tests] = TestDirParser::parse_dir(get_program_options()->value("test_dir"));
+    auto [test_type, tests] =
+        TestDirParser::parse_dir(get_program_options()->value("test_dir"));
 
     std::cout << "tests count: " << tests.size() << std::endl;
 
     run_analyzer analyzer;
 
-    //TODO size?
-    executor->init_shared_memory(100);
+    // TODO size?
+    executor->init_shared_memory(1000);
 
-    for (const auto limit: {20, 100, 500}) {
+    bool error_reached = false;
+
+    for (const auto limit : {20, 100, 500}) {
+
+        if (error_reached) break;
+
         executor->set_timeout(limit);
 
         for (auto test_buf_it = tests.begin(); test_buf_it != tests.end();) {
-        std::cout << "Running tests with timeout " << limit << std::endl;
+            std::cout << "Running tests with timeout " << limit << std::endl;
             auto size = test_buf_it->size();
 
             executor->get_shared_memory().clear();
 
             executor->get_shared_memory() << (uint64_t)size;
-            executor->get_shared_memory().accept_bytes(test_buf_it->data(), size);
+            executor->get_shared_memory().accept_bytes(test_buf_it->data(),
+                                                       size);
 
-            std::cout << "test loaded into shared memory" << std::endl;
-
-            executor->get_shared_memory().print();
             executor->execute_target();
-            executor->get_shared_memory().print();
 
             analyzer.add_execution(executor->get_shared_memory());
 
-            if (executor->get_shared_memory().get_termination() == instrumentation::target_termination::normal ||
-                executor->get_shared_memory().get_termination() == instrumentation::target_termination::ver_error_reached)
-            {
+            if (test_type == TestDirParser::CALL &&
+                executor->get_shared_memory().get_termination() ==
+                    instrumentation::target_termination::ver_error_reached) {
+                error_reached = true;
+                break;
+            }
+
+            if (executor->get_shared_memory().get_termination() ==
+                       instrumentation::target_termination::normal) {
                 tests.erase(test_buf_it++);
             } else {
                 ++test_buf_it;
             }
-
         }
     }
 
     auto results = analyzer.get_result();
 
-    std::cout << "Coverage: " << results.first << std::endl;
+    auto result_file =
+        std::filesystem::path(get_program_options()->value("output_dir"))
+            .append("result.json");
 
-    auto result_file = std::filesystem::path(get_program_options()->value("output_dir")).append("result.json");
-    save_results_to_json(result_file, results);
+    if (test_type == TestDirParser::CALL) {
+        save_results_to_json(result_file, {error_reached, results.second});
+    }
+    else {
+        save_results_to_json(result_file, results);
+    }
 }
 
-void run(int argc, char* argv[]) {
+void run(int argc, char* argv[])
+{
     if (get_program_options()->value("output_dir").empty()) {
         std::cerr << "ERROR: The output directory path is empty.\n";
         return;
@@ -126,7 +145,7 @@ void run(int argc, char* argv[]) {
                   << get_program_options()->value("path_to_target")
                   << "' does not reference a regular file.\n";
         return;
-            }
+    }
     std::filesystem::perms const perms =
         std::filesystem::status(get_program_options()->value("path_to_target"))
             .permissions();
@@ -136,7 +155,7 @@ void run(int argc, char* argv[]) {
                   << get_program_options()->value("path_to_target")
                   << "' references a file which is NOT executable.\n";
         return;
-        }
+    }
     if (get_program_options()->has("path_to_client")) {
         if (!std::filesystem::is_regular_file(
                 get_program_options()->value("path_to_client"))) {
@@ -144,7 +163,7 @@ void run(int argc, char* argv[]) {
                       << get_program_options()->value("path_to_client")
                       << "' does not reference a regular file.\n";
             return;
-                }
+        }
         std::filesystem::perms const perms =
             std::filesystem::status(
                 get_program_options()->value("path_to_client"))
@@ -155,7 +174,7 @@ void run(int argc, char* argv[]) {
                       << get_program_options()->value("path_to_client")
                       << "' references a file which is NOT executable.\n";
             return;
-            }
+        }
     }
 
     iomodels::iomanager::instance().set_config(
@@ -163,7 +182,8 @@ void run(int argc, char* argv[]) {
              0,
              std::stoi(get_program_options()->value("max_exec_milliseconds"))),
          .max_exec_megabytes = (natural_16_bit)std::max(
-             0, std::stoi(get_program_options()->value("max_exec_megabytes")))});
+             0,
+             std::stoi(get_program_options()->value("max_exec_megabytes")))});
 
     std::string target_name =
         std::filesystem::path(get_program_options()->value("path_to_target"))

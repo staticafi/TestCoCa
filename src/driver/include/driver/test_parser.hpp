@@ -30,7 +30,7 @@ namespace TestDirParser {
     using tests = boost::unordered_set<TestBuffer>;
     enum TestType {
         COVERAGE,
-        BUG
+        CALL
     };
 
     std::pair<TestType, tests> parse_dir(const std::string& test_dir);

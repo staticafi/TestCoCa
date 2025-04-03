@@ -30,7 +30,7 @@ void shared_memory::set_size(natural_32_bit size)
 
 void shared_memory::clear()
 {
-    memset(memory, 0, region.get_size()); //TODO remove, only for testing
+    memset(memory, 0, region.get_size());
     cursor = 0;
     *saved = 0;
 }
