@@ -13,6 +13,9 @@
         "m32": false
     },
     "results": {
-        "coverage": 1
+        "coverage": 1,
+        "coverage_map": {
+            "1": "BOTH"
+        }
     }
 }

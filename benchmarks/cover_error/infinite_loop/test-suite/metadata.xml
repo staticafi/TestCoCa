@@ -4,9 +4,9 @@
   <sourcecodelang>C</sourcecodelang>
   <producer>sbt-fizzer</producer>
   <specification>COVER( init(main()), FQL(COVER EDGES(@CALL(reach_error))) )</specification>
-  <programfile>nested_ifs.c</programfile>
+  <programfile>infinite_loop.c</programfile>
   <programhash>null</programhash>
   <entryfunction>main</entryfunction>
   <architecture>64bit</architecture>
-  <creationtime>2025-03-24 18:52:42</creationtime>
+  <creationtime>2025-03-24 18:52:43</creationtime>
 </test-metadata>

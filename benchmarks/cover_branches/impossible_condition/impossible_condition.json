@@ -13,6 +13,10 @@
         "m32": false
     },
     "results": {
-        "coverage": 0.5
+        "coverage": 0.5,
+        "coverage_map": {
+            "2": "TRUE",
+            "1": "TRUE"
+        }
     }
 }

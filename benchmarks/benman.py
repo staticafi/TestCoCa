@@ -41,9 +41,6 @@ class Benchmark:
             #"max_stdin_bytes",
             #"max_exec_milliseconds",
             #"max_exec_megabytes",
-            #"optimizer_max_seconds",
-            #"optimizer_max_trace_length",
-            #"optimizer_max_stdin_bytes"
             ]), "Benchmark's JSON file does not contain all required options for running the tool.")
 
         self.instrumented_bin = self.name + "_instr.out"
@@ -200,19 +197,24 @@ class Benchmark:
             output_dir
             )
 
-        errors = []
         try:
             outcomes_pathname = os.path.join(output_dir, "result.json")
             with open(outcomes_pathname, "rb") as fp:
                 outcomes = json.load(fp)
-                expected = float (self.config["results"]["coverage"])
-                actual = float (outcomes["result"])
-                if expected == actual:
-                    return True
-            #if self._check_outcomes(outcomes, self.config["results"], errors) is True:
-            #    ASSUMPTION(len(errors) == 0)
-            #    self.log("The outcomes are as expected => the test has PASSED.", "ok\n")
-            #    return True
+                expected_result = float (self.config["results"]["coverage"])
+                actual_result = float (outcomes["coverage"])
+
+                if expected_result != actual_result:
+                    return False
+
+                if ("coverage_map" in outcomes and "coverage_map" in self.config["results"]):
+                    expected_coverage = self.config["results"]["coverage_map"]
+                    actual_coverage = outcomes["coverage_map"]
+
+                    return (expected_coverage == actual_coverage)
+
+                return True
+
         except Exception as e:
             self.log("FAILURE due to an EXCEPTION: " + str(e), "EXCEPTION[" + str(e) + "]\n")
             return False

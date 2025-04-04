@@ -14,7 +14,7 @@ void save_results_to_json(const std::string& filename, const std::pair<double, c
 {
     boost::property_tree::ptree root;
 
-    root.put<float>("result", results.first);
+    root.put<float>("coverage", results.first);
 
     boost::property_tree::ptree coverage_node;
     for (const auto& [key, value] : results.second) {
@@ -33,7 +33,7 @@ void save_results_to_json(const std::string& filename, const std::pair<double, c
         }
     }
 
-    root.add_child("coverage", coverage_node);
+    root.add_child("coverage_map", coverage_node);
 
     write_json(filename, root, std::locale(), true);
 }
