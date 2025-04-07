@@ -51,8 +51,13 @@ void llvm_instrumenter::instrumentCondBr(BranchInst* brInst) const {
     builder.CreateCall(processCondBrFunc, {location, cond});
 }
 
-void llvm_instrumenter::instrumentVerifierError(CallInst* callInst) const {
-    IRBuilder builder(callInst);
+void llvm_instrumenter::instrumentVerifierError(Function* targetFunc) const {
+    BasicBlock &entryBB = targetFunc->getEntryBlock();
+
+    auto firstNonPHI = entryBB.getFirstNonPHI();
+    IRBuilder builder(&entryBB, firstNonPHI ? firstNonPHI->getIterator()
+                                            : entryBB.begin());
+
     builder.CreateCall(processVerErrFunc);
 }
 
@@ -85,13 +90,8 @@ bool llvm_instrumenter::runOnFunction(Function& F, bool instBr, bool instErr, st
         BB.setName("bb" + std::to_string(basicBlockCounter));
 
         if (instErr) {
-            for (auto& I: BB) {
-                if (isa<CallInst>(I)) {
-                    StringRef name = cast<CallInst>(I).getCalledFunction()->getName();
-                    if (name == renamePrefix + targetFunc) {
-                        instrumentVerifierError(dyn_cast<CallInst>(&I));
-                    }
-                }
+            if (F.getName() ==  renamePrefix + targetFunc) {
+                instrumentVerifierError(&F);
             }
         }
 

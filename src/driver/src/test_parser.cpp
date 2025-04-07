@@ -105,6 +105,7 @@ void write_untyped(TestBuffer& buffer, const std::string& value_str) {
     }
 
     try {
+        //TODO test for NaN
         double val = boost::lexical_cast<double>(value_str);
         buffer.write(val, type_of_input_bits::FLOAT64);
         return;

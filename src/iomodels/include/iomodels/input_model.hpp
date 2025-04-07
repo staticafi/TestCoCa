@@ -61,25 +61,25 @@ struct input_model {
 
         switch (type) {
             case type_of_input_bits::UINT8:
-                *ptr = *(uint8_t*) (bytes.data() + cursor); break;
+                *ptr = (T) *(uint8_t*) (bytes.data() + cursor); break;
             case type_of_input_bits::SINT8:
-                *ptr = *(int8_t*) (bytes.data() + cursor); break;
+                *ptr = (T) *(int8_t*) (bytes.data() + cursor); break;
             case type_of_input_bits::UINT16:
-                *ptr = *(uint16_t*) (bytes.data() + cursor); break;
+                *ptr = (T) *(uint16_t*) (bytes.data() + cursor); break;
             case type_of_input_bits::SINT16:
-                *ptr = *(int16_t*) (bytes.data() + cursor); break;
+                *ptr = (T) *(int16_t*) (bytes.data() + cursor); break;
             case type_of_input_bits::UINT32:
-                *ptr = *(uint32_t*) (bytes.data() + cursor); break;
+                *ptr = (T) *(uint32_t*) (bytes.data() + cursor); break;
             case type_of_input_bits::SINT32:
-                *ptr = *(int32_t*) (bytes.data() + cursor); break;
+                *ptr = (T) *(int32_t*) (bytes.data() + cursor); break;
             case type_of_input_bits::UINT64:
-                *ptr = *(uint64_t*) (bytes.data() + cursor); break;
+                *ptr = (T) *(uint64_t*) (bytes.data() + cursor); break;
             case type_of_input_bits::SINT64:
-                *ptr = *(int64_t*) (bytes.data() + cursor); break;
+                *ptr = (T) *(int64_t*) (bytes.data() + cursor); break;
             case type_of_input_bits::FLOAT32:
-                *ptr = *(float*) (bytes.data() + cursor); break;
+                *ptr = (T) *(float*) (bytes.data() + cursor); break;
             case type_of_input_bits::FLOAT64:
-                *ptr = *(double*) (bytes.data() + cursor); break;
+                *ptr = (T) *(double*) (bytes.data() + cursor); break;
             default: ;
         }
 

@@ -211,7 +211,7 @@ class Benchmark:
                     expected_coverage = self.config["results"]["coverage_map"]
                     actual_coverage = outcomes["coverage_map"]
 
-                    return (expected_coverage == actual_coverage)
+                    return expected_coverage == actual_coverage
 
                 return True
 
@@ -311,6 +311,7 @@ class Benman:
         for pathname in benchmark_paths:
             benchmark = Benchmark(pathname, self.runner_script, self.args.verbose)
             if not benchmark.test(self.benchmarks_dir, self.output_dir):
+                print("FAILED")
                 num_failures += 1
         if num_failures > 0:
             print("FAILURE[" + str(num_failures) + "/" + str(len(benchmark_paths)) + "]")

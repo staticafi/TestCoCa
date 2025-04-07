@@ -12,7 +12,7 @@ struct llvm_instrumenter {
 
     void instrumentCondBr(llvm::BranchInst *brInst) const;
 
-    void instrumentVerifierError(llvm::CallInst *callInst) const;
+    void instrumentVerifierError(llvm::Function *function) const;
 
     void addCondBrCount() const;
 

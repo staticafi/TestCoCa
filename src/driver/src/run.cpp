@@ -6,9 +6,15 @@
 #include <filesystem>
 #include <iomodels/iomanager.hpp>
 #include <iostream>
+#include <boost/math/special_functions/pow.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include "driver/run_analyzer.hpp"
 #include "driver/test_parser.hpp"
+
+#define TEST_MIN_DURATION 20
+#define TEST_MAX_WAVE_COUNT 4
+#define TEST_DURATION_INCREASE_RATIO 3
 
 void save_results_to_json(const std::string& filename, const std::pair<double, coverage_map>& results)
 {
@@ -38,6 +44,37 @@ void save_results_to_json(const std::string& filename, const std::pair<double, c
     write_json(filename, root, std::locale(), true);
 }
 
+std::vector<size_t> calculate_waves(size_t limit, size_t test_count) {
+    if (limit / test_count < TEST_MIN_DURATION) {
+        return {TEST_MIN_DURATION};
+    }
+
+    std::vector<size_t> waves;
+    const size_t r = TEST_DURATION_INCREASE_RATIO;
+    size_t remaining = limit;
+    size_t current = TEST_MIN_DURATION;
+
+    while (waves.size() < TEST_MAX_WAVE_COUNT) {
+        const size_t wave_time = current;
+        const size_t total_consumed = wave_time * test_count;
+
+        if (total_consumed > remaining) {
+            if (!waves.empty()) {
+                waves.back() += remaining / test_count;
+            }
+            break;
+        }
+
+        waves.push_back(wave_time);
+        remaining -= total_consumed;
+        current *= r;
+    }
+
+    if (waves.empty()) waves.push_back(TEST_MIN_DURATION);
+
+    return waves;
+}
+
 void run_test_suite()
 {
     const auto executor = std::make_shared<connection::target_executor>(
@@ -53,13 +90,17 @@ void run_test_suite()
     // TODO size?
     executor->init_shared_memory(1000);
 
+    auto time_limit_str = get_program_options()->value("time_limit");
+    auto time_limit = time_limit_str.empty() ? 2000 : boost::lexical_cast<size_t>(time_limit_str);
+
     bool error_reached = false;
 
-    for (const auto limit : {20, 100, 500}) {
+    for (const auto limit : calculate_waves(time_limit, tests.size())) {
 
         if (error_reached) break;
 
         executor->set_timeout(limit);
+        std::cout << "running test with timeout: " << limit << std::endl;
 
         for (auto test_buf_it = tests.begin(); test_buf_it != tests.end();) {
             std::cout << "Running tests with timeout " << limit << std::endl;
