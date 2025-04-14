@@ -87,11 +87,11 @@ void run_test_suite()
 
     run_analyzer analyzer;
 
-    // TODO size?
-    executor->init_shared_memory(1000);
+    executor->init_shared_memory(boost::lexical_cast<size_t>(get_program_options()->value("max_exec_megabytes")));
 
-    auto time_limit_str = get_program_options()->value("time_limit");
-    auto time_limit = time_limit_str.empty() ? 2000 : boost::lexical_cast<size_t>(time_limit_str);
+    auto time_limit = boost::lexical_cast<size_t>(get_program_options()->value("max_exec_milliseconds"));
+
+    std::cout << "Test run time limit: " << time_limit << std::endl;
 
     bool error_reached = false;
 
@@ -111,7 +111,6 @@ void run_test_suite()
             executor->get_shared_memory() << (uint64_t)size;
             executor->get_shared_memory().accept_bytes(test_buf_it->data(),
                                                        size);
-
             executor->execute_target();
 
             analyzer.add_execution(executor->get_shared_memory());

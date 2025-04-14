@@ -4,6 +4,8 @@ import sys
 import os
 import time
 import shutil
+import zipfile
+from pathlib import Path
 
 
 def _execute(command_and_args, timeout_ = None):
@@ -80,7 +82,7 @@ def build(self_dir, input_file, output_dir, options, use_m32, silent_mode):
     if silent_mode is False: print("},", flush=True)
 
 
-def test(self_dir, input_file, test_dir, output_dir, options, start_time, silent_mode):
+def test(self_dir, input_file, test_suite, output_dir, options, start_time, silent_mode):
     target = os.path.join(output_dir, benchmark_target_name(input_file))
     if not os.path.isfile(target):
         target = os.path.join(os.path.dirname(input_file), benchmark_target_name(input_file))
@@ -90,7 +92,7 @@ def test(self_dir, input_file, test_dir, output_dir, options, start_time, silent
     if _execute(
             [ os.path.join(self_dir, "tools", "@DRIVER_FILE@"),
                 "--path_to_target", target ] +
-                [ "--test_dir", test_dir] +
+                [ "--test_dir", test_suite] +
                 [ "--output_dir", output_dir] +
                 options,
             None).returncode:
@@ -102,7 +104,7 @@ def help(self_dir):
     print("================")
     print("help                 Prints this help message.")
     print("input_file <PATH>    A source C file to build and test.")
-    print("test_dir <PATH>      A directory where tests are located.")
+    print("test_suite <PATH>      A directory where tests are located.")
     print("output_dir <PATH>    A directory under which all results and intermediate files will be saved.")
     print("                     If not specified, then the current directory is used.")
     print("skip_building        Skip building of the source C file.")
@@ -127,13 +129,42 @@ def help(self_dir):
 def version(self_dir):
     _execute([ os.path.join(self_dir, "tools", "@DRIVER_FILE@"), "--version"], None)
 
+def prepare_test_suite(test_suite: str, output_dir: str) -> str:
+    ts_path = Path(test_suite)
+    out_path = Path(output_dir)
+
+    # Handle ZIP files
+    if ts_path.is_file() and zipfile.is_zipfile(ts_path):
+        extract_dir = out_path / "test-suite"
+
+        # Clean existing directory
+        if extract_dir.exists():
+            shutil.rmtree(extract_dir)
+
+        # Create and extract
+        extract_dir.mkdir(parents=True, exist_ok=True)
+
+        try:
+            with zipfile.ZipFile(ts_path, 'r') as zf:
+                zf.testzip()  # Validate first
+                zf.extractall(extract_dir)
+        except zipfile.BadZipFile as e:
+            raise ValueError(f"Invalid/corrupt ZIP file: {ts_path}") from e
+
+        return str(extract_dir.resolve())
+
+    # Handle existing directories
+    if ts_path.is_dir():
+        return test_suite
+
+    raise FileNotFoundError(f"Test suite path not found: {test_suite}")
 
 def main():
     start_time = time.time()
     self_dir = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
     old_cwd = os.path.abspath(os.getcwd())
     input_file = None
-    test_dir = None
+    test_suite = None
     output_dir = old_cwd
     clear_output_dir = False
     skip_building = False
@@ -141,6 +172,7 @@ def main():
     silent_mode = False
     use_m32 = False
     options = []
+    options_instument = []
     i = 1
 
     while i < len(sys.argv):
@@ -156,8 +188,8 @@ def main():
         if arg == "--input_file" and i+1 < len(sys.argv) and os.path.isfile(sys.argv[i+1]):
             input_file = os.path.normpath(os.path.abspath(sys.argv[i+1]))
             i += 1
-        elif arg == "--test_dir" and i+1 < len(sys.argv) and not os.path.isfile(sys.argv[i+1]):
-            test_dir = os.path.normpath(os.path.abspath(sys.argv[i+1]))
+        elif arg == "--test_suite" and i+1 < len(sys.argv) and not os.path.isfile(sys.argv[i+1]):
+            test_suite = os.path.normpath(os.path.abspath(sys.argv[i+1]))
             i += 1
         elif arg == "--output_dir" and i+1 < len(sys.argv) and not os.path.isfile(sys.argv[i+1]):
             output_dir = os.path.normpath(os.path.abspath(sys.argv[i+1]))
@@ -171,6 +203,12 @@ def main():
             skip_testing = True
         elif arg == "--m32":
             use_m32 = True
+        elif arg in [ "--inst_br" ]:
+            options_instument.append(arg)
+        elif arg in [ "--inst_err" ]:
+            options_instument.append(arg)
+            options_instument.append(sys.argv[i+1])
+            i += 1
         else:
             options.append(arg)
         i += 1
@@ -184,11 +222,23 @@ def main():
         if input_file is None:
             raise Exception("Cannot find the input file.")
         if skip_building is False:
-            build(self_dir, input_file, output_dir, options, use_m32, silent_mode)
+            build(self_dir, input_file, output_dir, options_instument, use_m32, silent_mode)
         if skip_testing is False:
-            if test_dir is None:
+            if test_suite is None:
                 raise Exception("Cannot find the test directory")
-            test(self_dir, input_file, test_dir, output_dir, options, start_time, silent_mode)
+
+            try:
+                test_suite = prepare_test_suite(test_suite, output_dir)
+            except (ValueError, FileNotFoundError) as e:
+                raise Exception(f"Test suite preparation failed: {str(e)}")
+
+            if not Path(test_suite).exists():
+                raise FileNotFoundError(f"Final test suite path invalid: {test_suite}")
+
+            if silent_mode is False: print(f"Test suite dir: {test_suite}", flush=True)
+
+            test(self_dir, input_file, test_suite, output_dir, options, start_time, silent_mode)
+
             if silent_mode is False: print(",", flush=True)
         if silent_mode is False: print("\"exit_code\": 0,", flush=True)
     except Exception as e:

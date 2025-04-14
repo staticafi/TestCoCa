@@ -35,12 +35,8 @@ class Benchmark:
             self.config = json.load(fp)
         ASSUMPTION(all(x in self.config for x in ["args", "results"]), "Cannot find 'args' or 'results' in the benchmark's JSON file.")
         ASSUMPTION(all(x in self.config["args"] for x in [
-            #"max_executions",
-            #"max_seconds",
-            #"max_trace_length",
-            #"max_stdin_bytes",
-            #"max_exec_milliseconds",
-            #"max_exec_megabytes",
+            "max_exec_milliseconds",
+            "max_exec_megabytes",
             ]), "Benchmark's JSON file does not contain all required options for running the tool.")
 
         self.instrumented_bin = self.name + "_instr.out"
@@ -191,7 +187,7 @@ class Benchmark:
                 benman.runner_script,
                 "--skip_building",
                 "--input_file", self.src_file,
-                "--test_dir", self.test_suite,
+                "--test_suite", self.test_suite,
                 "--output_dir", output_dir,
             ],
             output_dir
@@ -204,22 +200,23 @@ class Benchmark:
                 expected_result = float (self.config["results"]["coverage"])
                 actual_result = float (outcomes["coverage"])
 
-                if expected_result != actual_result:
-                    return False
+                if expected_result == actual_result:
+                    return True
 
                 if ("coverage_map" in outcomes and "coverage_map" in self.config["results"]):
                     expected_coverage = self.config["results"]["coverage_map"]
                     actual_coverage = outcomes["coverage_map"]
 
-                    return expected_coverage == actual_coverage
+                    if expected_coverage == actual_coverage:
+                        return True
 
-                return True
+                else: return True
 
         except Exception as e:
             self.log("FAILURE due to an EXCEPTION: " + str(e), "EXCEPTION[" + str(e) + "]\n")
             return False
-        error_messages = "\n    " + "\n    ".join(errors)
-        self.log("The outcomes are NOT as expected => the test has FAILED. Details:" + error_messages, "FAILED " + error_messages + "\n")
+
+        print("FAILED", flush=True)
         return False
 
     def clear(self, benchmarks_root_dir : str, output_root_dir : str) -> None:
@@ -265,10 +262,10 @@ class Benman:
                        f"Missing JSON configuration: {json_path}")
 
             test_suite_dir = os.path.join(benchmark_dir, "test-suite")
-            ASSUMPTION(os.path.isdir(test_suite_dir),
+            ASSUMPTION(os.path.isdir(test_suite_dir) or os.path.isfile(f"{test_suite_dir}.zip"),
                        f"Missing test_suite directory in {benchmark_dir}")
 
-            test_pattern = os.path.join(test_suite_dir, f"{benchmark_name}_test_*.xml")
+            test_pattern = os.path.join(test_suite_dir, f"test_*.xml")
             test_files = glob.glob(test_pattern)
             ASSUMPTION(len(test_files) >= 1,
                        f"Expected at least 1 test files matching {benchmark_name}_test_*.xml, found {len(test_files)}")

@@ -20,7 +20,7 @@ struct  configuration
 
     mutable std::optional<natural_32_bit> shared_memory_size_cache;
 
-    natural_16_bit max_exec_milliseconds { 250 };
+    natural_16_bit max_exec_milliseconds { 1000 };
     natural_16_bit  max_exec_megabytes { 1024 };
 };
 

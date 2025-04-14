@@ -1,6 +1,7 @@
 {
     "args": {
-        "max_seconds": 30,
+        "max_exec_milliseconds": 30000,
+        "max_exec_megabytes": 1024,
         "m32": false
     },
     "results": {
