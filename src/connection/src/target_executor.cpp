@@ -28,7 +28,7 @@ target_executor::target_executor(std::string target_invocation)
 void target_executor::init_shared_memory(std::size_t size)
 {
     get_shared_memory().open_or_create();
-    get_shared_memory().set_size((natural_32_bit)size);
+    get_shared_memory().set_size(size);
     get_shared_memory().map_region();
 }
 
@@ -44,6 +44,9 @@ void target_executor::execute_target()
     bp::child target = bp::child(target_invocation, bp::std_out > stdout, bp::std_err > stderr);
     if (!wait_for_wrapper(target, std::chrono::milliseconds(timeout_ms))) {
         target.terminate();
+
+        std::cout << "TIME OUT: " << timeout_ms <<  std::endl;
+
         get_shared_memory().set_termination(target_termination::timeout);
     }
 

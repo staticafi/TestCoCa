@@ -26,12 +26,15 @@ void run_analyzer::add_execution(connection::shared_memory &src) {
 
 
 std::pair<double, coverage_map> run_analyzer::get_result() {
-    natural_32_bit contitions_covered = 0;
+    uint64_t conditions_covered = 0;
     for (auto &[id, cc]: coverage) {
-        contitions_covered += cc == instrumentation::BOTH ? 2 : 1;
+        conditions_covered += cc == instrumentation::BOTH ? 2 : 1;
     }
 
-    return {contitions_covered / static_cast<double>(br_instr_count * 2), coverage};
+    std::cout << "Total: " << br_instr_count * 2 << std::endl;
+    std::cout << "Covered: " << conditions_covered << std::endl;
+
+    return {conditions_covered / static_cast<long double>(br_instr_count * 2), coverage};
 }
 
 void run_analyzer::reset() {

@@ -14,16 +14,16 @@ void shared_memory::open_or_create()
                                     bip::read_write);
 }
 
-natural_32_bit shared_memory::get_size() const
+size_t shared_memory::get_size() const
 {
     size_t size = region.get_size();
     if (size != 0) {
-        return (natural_32_bit)(size - sizeof(*saved));
+        return size - sizeof(*saved);
     }
-    return (natural_32_bit)size;
+    return size;
 }
 
-void shared_memory::set_size(natural_32_bit size)
+void shared_memory::set_size(size_t size)
 {
     shm.truncate(size + sizeof(*saved));
 }
@@ -39,7 +39,7 @@ void shared_memory::map_region()
 {
     region = bip::mapped_region(shm, bip::read_write);
     cursor = 0;
-    saved  = static_cast<natural_32_bit*>(region.get_address());
+    saved  = static_cast<natural_64_bit*>(region.get_address());
     memory = static_cast<natural_8_bit*>(region.get_address()) + sizeof(*saved);
 }
 
@@ -97,8 +97,8 @@ std::optional<target_termination> shared_memory::get_termination() const
     return termination;
 }
 
-natural_32_bit shared_memory::get_cond_br_count() const {
-    return *(memory + 2);
+uint32_t shared_memory::get_cond_br_count() const {
+    return *(uint32_t*) (memory + 2);
 }
 
 void shared_memory::set_termination(target_termination termination)
@@ -116,9 +116,9 @@ natural_8_bit* shared_memory::get_memory(){
     return memory;
 }
 
-void shared_memory::print() {
+void shared_memory::print(size_t s) {
     auto buffer = memory;
-    int size = get_size();
+    int size = s == 0 ? get_size() : s;
 
     std::cout << "Shared Memory Dump (" << size << " bytes):\n";
 

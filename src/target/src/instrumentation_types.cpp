@@ -2,6 +2,7 @@
 #include <utility/invariants.hpp>
 #include <ostream>
 #include <iomanip>
+#include <iostream>
 
 namespace  instrumentation {
 
@@ -15,7 +16,7 @@ size_t br_instr_coverage_info::flattened_size() {
     return sizeof(id) + sizeof(condition_coverage);
 }
 
-type_of_input_bits  from_id(natural_8_bit const  id)
+type_of_input_bits from_id(natural_8_bit const  id)
 {
     switch (id)
     {

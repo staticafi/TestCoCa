@@ -22,7 +22,6 @@ namespace iomodels {
     }
 
     void configuration::load_target_config(connection::shared_memory& src) {
-        return;
         src >> max_exec_megabytes;
     }
 }

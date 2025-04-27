@@ -29,7 +29,10 @@ class Benchmark:
 
         self.src_file = os.path.join(self.work_dir, self.fname)
         self.config_file = os.path.join(self.work_dir, self.name + ".json")
-        self.test_suite = os.path.join(self.work_dir, "test-suite")
+        if os.path.isdir(os.path.join(self.work_dir, "test-suite")):
+            self.test_suite = os.path.join(self.work_dir, "test-suite")
+        else:
+            self.test_suite = os.path.join(self.work_dir, "test-suite.zip")
 
         with open(self.config_file, "rb") as fp:
             self.config = json.load(fp)
@@ -265,14 +268,15 @@ class Benman:
             ASSUMPTION(os.path.isdir(test_suite_dir) or os.path.isfile(f"{test_suite_dir}.zip"),
                        f"Missing test_suite directory in {benchmark_dir}")
 
-            test_pattern = os.path.join(test_suite_dir, f"test_*.xml")
-            test_files = glob.glob(test_pattern)
-            ASSUMPTION(len(test_files) >= 1,
-                       f"Expected at least 1 test files matching {benchmark_name}_test_*.xml, found {len(test_files)}")
+            if os.path.isdir(test_suite_dir):
+                test_pattern = os.path.join(test_suite_dir, f"*test_*.xml")
+                test_files = glob.glob(test_pattern)
+                ASSUMPTION(len(test_files) >= 1,
+                           f"Expected at least 1 test files matching *test_*.xml, found {len(test_files)}")
 
-            metadata_path = os.path.join(test_suite_dir, "metadata.xml")
-            ASSUMPTION(os.path.isfile(metadata_path),
-                       f"Missing metadata.xml in test suite")
+                metadata_path = os.path.join(test_suite_dir, "metadata.xml")
+                ASSUMPTION(os.path.isfile(metadata_path),
+                           f"Missing metadata.xml in test suite")
 
             return c_file_path
 

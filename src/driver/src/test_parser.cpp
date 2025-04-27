@@ -8,7 +8,7 @@
 
 using namespace instrumentation;
 
-TestBuffer::TestBuffer() : offset(0), buffer(100)
+TestBuffer::TestBuffer() : offset(0), buffer(200)
 {
 }
 
@@ -24,8 +24,8 @@ uint64_t TestBuffer::size() const
 
 void TestBuffer::write(auto val, type_of_input_bits type)
 {
-    if (buffer.capacity() < offset + sizeof(val) + 1) {
-        buffer.reserve(buffer.capacity() * 2);
+    if (buffer.size() < offset + sizeof(val) + 1) {
+        buffer.resize(buffer.capacity() * 2);
     }
 
     buffer[offset++] = (char) type;
@@ -51,8 +51,6 @@ TestType getTestType(std::filesystem::path& path) {
 std::pair<TestType, tests> parse_dir(
     const std::string& dir_path)
 {
-    std::cout << "Parsing test directory: " << dir_path << std::endl;
-
     std::filesystem::path metadata_path(dir_path + "/metadata.xml");
     auto test_type = getTestType(metadata_path);
 

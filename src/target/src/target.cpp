@@ -27,7 +27,7 @@ void target::process_br_instr(const br_instr_id id, const condition_coverage cov
 
     auto mem = (br_instr_coverage_info*)(shared_memory.get_memory() +
                 sizeof(target_termination) * 2 +
-                sizeof(natural_32_bit));
+                sizeof(uint32_t));
 
     if (inserted) {
         ++index;
@@ -57,7 +57,7 @@ void target::load_stdin()
 
 void target::load_config() {
     config.load_target_config(shared_memory);
-    stdin_model = std::make_unique<input_model>(100); //TODO dummy value
+    stdin_model = std::make_unique<input_model>(config.max_exec_megabytes * 1024 * 1024);
 }
 
 }  // namespace instrumentation

@@ -13,7 +13,6 @@ struct  configuration
 
     void save_target_config(connection::shared_memory& dest) const;
     void load_target_config(connection::shared_memory& src);
-    void save_client_config(connection::shared_memory& dest) const;
 
     bool operator==(configuration const&  other) const;
     bool operator!=(configuration const&  other) const { return !(*this == other);}
@@ -21,7 +20,7 @@ struct  configuration
     mutable std::optional<natural_32_bit> shared_memory_size_cache;
 
     natural_16_bit max_exec_milliseconds { 1000 };
-    natural_16_bit  max_exec_megabytes { 1024 };
+    natural_16_bit  max_exec_megabytes { 4 };
 };
 
 }

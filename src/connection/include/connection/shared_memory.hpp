@@ -15,16 +15,16 @@ class shared_memory {
 
     boost::interprocess::shared_memory_object shm;
     boost::interprocess::mapped_region region;
-    //TODO 64b
-    natural_32_bit cursor = 0;
+
+    natural_64_bit cursor = 0;
     natural_8_bit* memory = nullptr;
-    natural_32_bit* saved = nullptr;
+    natural_64_bit* saved = nullptr;
 
    public:
-    natural_32_bit get_size() const;
-    void set_size(natural_32_bit bytes);
+    size_t get_size() const;
+    void set_size(size_t bytes);
     void clear();
-    void print();
+    void print(size_t size = 0);
 
     void open_or_create();
     void map_region();
@@ -43,7 +43,7 @@ class shared_memory {
 
     void set_termination(instrumentation::target_termination termination);
 
-    natural_32_bit get_cond_br_count() const;
+    uint32_t get_cond_br_count() const;
 
     template <typename T,
               typename std::enable_if<std::is_trivially_copyable<T>::value,

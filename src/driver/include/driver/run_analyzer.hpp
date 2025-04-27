@@ -9,7 +9,7 @@ using coverage_map = std::unordered_map<instrumentation::br_instr_id, instrument
 
 class run_analyzer {
     coverage_map coverage;
-    natural_32_bit br_instr_count = 0;
+    uint64_t br_instr_count = 0;
 
    public:
     void add_execution(connection::shared_memory& src);

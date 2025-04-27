@@ -20,7 +20,9 @@ void save_results_to_json(const std::string& filename, const std::pair<double, c
 {
     boost::property_tree::ptree root;
 
-    root.put<float>("coverage", results.first);
+    float coverage = std::round(results.first * 10000.0f) / 10000.0f;
+
+    root.put("coverage", coverage);
 
     boost::property_tree::ptree coverage_node;
     for (const auto& [key, value] : results.second) {
@@ -83,15 +85,14 @@ void run_test_suite()
     auto [test_type, tests] =
         TestDirParser::parse_dir(get_program_options()->value("test_dir"));
 
-    std::cout << "tests count: " << tests.size() << std::endl;
+    std::cout << "Test count: " << tests.size() << std::endl;
 
     run_analyzer analyzer;
 
-    executor->init_shared_memory(boost::lexical_cast<size_t>(get_program_options()->value("max_exec_megabytes")));
+    uint32_t max_exec_megabytes = boost::lexical_cast<size_t>(get_program_options()->value("max_exec_megabytes"));
+    executor->init_shared_memory(1024 * 1024 * max_exec_megabytes);
 
     auto time_limit = boost::lexical_cast<size_t>(get_program_options()->value("max_exec_milliseconds"));
-
-    std::cout << "Test run time limit: " << time_limit << std::endl;
 
     bool error_reached = false;
 
@@ -100,17 +101,17 @@ void run_test_suite()
         if (error_reached) break;
 
         executor->set_timeout(limit);
-        std::cout << "running test with timeout: " << limit << std::endl;
+        std::cout << "Running test with timeout: " << limit << std::endl;
 
         for (auto test_buf_it = tests.begin(); test_buf_it != tests.end();) {
-            std::cout << "Running tests with timeout " << limit << std::endl;
             auto size = test_buf_it->size();
 
             executor->get_shared_memory().clear();
-
-            executor->get_shared_memory() << (uint64_t)size;
+            executor->get_shared_memory() << (uint16_t) max_exec_megabytes;
+            executor->get_shared_memory() << (uint64_t) size;
             executor->get_shared_memory().accept_bytes(test_buf_it->data(),
                                                        size);
+
             executor->execute_target();
 
             analyzer.add_execution(executor->get_shared_memory());
@@ -132,6 +133,8 @@ void run_test_suite()
     }
 
     auto results = analyzer.get_result();
+
+    std::cout << "Coverage: " << std::setprecision(4) << results.first << std::endl;
 
     auto result_file =
         std::filesystem::path(get_program_options()->value("output_dir"))

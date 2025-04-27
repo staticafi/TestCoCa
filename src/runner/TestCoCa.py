@@ -133,29 +133,27 @@ def prepare_test_suite(test_suite: str, output_dir: str) -> str:
     ts_path = Path(test_suite)
     out_path = Path(output_dir)
 
-    # Handle ZIP files
     if ts_path.is_file() and zipfile.is_zipfile(ts_path):
-        extract_dir = out_path / "test-suite"
+        extract_dir_name = ts_path.stem
+        extract_dir = out_path / extract_dir_name
 
-        # Clean existing directory
         if extract_dir.exists():
             shutil.rmtree(extract_dir)
 
-        # Create and extract
-        extract_dir.mkdir(parents=True, exist_ok=True)
+        extract_dir.mkdir(parents=True)
 
         try:
             with zipfile.ZipFile(ts_path, 'r') as zf:
-                zf.testzip()  # Validate first
+                zf.testzip()
                 zf.extractall(extract_dir)
+
         except zipfile.BadZipFile as e:
             raise ValueError(f"Invalid/corrupt ZIP file: {ts_path}") from e
 
         return str(extract_dir.resolve())
 
-    # Handle existing directories
     if ts_path.is_dir():
-        return test_suite
+        return str(ts_path.resolve())
 
     raise FileNotFoundError(f"Test suite path not found: {test_suite}")
 
@@ -188,7 +186,7 @@ def main():
         if arg == "--input_file" and i+1 < len(sys.argv) and os.path.isfile(sys.argv[i+1]):
             input_file = os.path.normpath(os.path.abspath(sys.argv[i+1]))
             i += 1
-        elif arg == "--test_suite" and i+1 < len(sys.argv) and not os.path.isfile(sys.argv[i+1]):
+        elif arg == "--test_suite" and i+1 < len(sys.argv):
             test_suite = os.path.normpath(os.path.abspath(sys.argv[i+1]))
             i += 1
         elif arg == "--output_dir" and i+1 < len(sys.argv) and not os.path.isfile(sys.argv[i+1]):

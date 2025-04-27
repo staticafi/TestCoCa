@@ -31,7 +31,7 @@ void  iomanager::set_config(configuration const&  cfg)
 input_model* iomanager::get_stdin() const
 {
     if (stdin_ptr == nullptr)
-        stdin_ptr = std::make_unique<input_model>(10000);
+        stdin_ptr = std::make_unique<input_model>(1024*1024);
     return stdin_ptr.get();
 }
 
