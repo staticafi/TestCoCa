@@ -18,7 +18,7 @@ public:
     const uint8_t *data() const;
 
     bool operator==(const TestBuffer& other) const {
-        return buffer == other.buffer;  // Essential for hash containers
+        return buffer == other.buffer;
     }
 
     friend size_t hash_value(const TestBuffer& buf) {
@@ -28,12 +28,8 @@ public:
 
 namespace TestDirParser {
     using tests = boost::unordered_set<TestBuffer>;
-    enum TestType {
-        COVERAGE,
-        CALL
-    };
 
-    std::pair<TestType, tests> parse_dir(const std::string& test_dir);
+    tests parse_dir(const std::string& test_dir);
 
     TestBuffer parse_test(const std::filesystem::path& test_path);
 }

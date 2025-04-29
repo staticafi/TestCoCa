@@ -3,7 +3,7 @@
 <test-metadata>
   <sourcecodelang>C</sourcecodelang>
   <producer>fizzer</producer>
-  <specification>COVER( init(main()), FQL(COVER EDGES(@DECISIONEDGE)) )</specification>
+  <specification>COVER( init(main()), FQL(COVER EDGES(@CALL(reach_error))) )</specification>
   <programfile>ternary_operator.c</programfile>
   <programhash>null</programhash>
   <entryfunction>main</entryfunction>

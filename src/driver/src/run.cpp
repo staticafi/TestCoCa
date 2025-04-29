@@ -12,9 +12,9 @@
 #include "driver/run_analyzer.hpp"
 #include "driver/test_parser.hpp"
 
-#define TEST_MIN_DURATION 20
+#define TEST_MIN_DURATION 100
 #define TEST_MAX_WAVE_COUNT 4
-#define TEST_DURATION_INCREASE_RATIO 3
+#define TEST_DURATION_INCREASE_RATIO 5
 
 void save_results_to_json(const std::string& filename, const std::pair<double, coverage_map>& results)
 {
@@ -47,6 +47,8 @@ void save_results_to_json(const std::string& filename, const std::pair<double, c
 }
 
 std::vector<size_t> calculate_waves(size_t limit, size_t test_count) {
+    if (test_count == 0) return {};
+
     if (limit / test_count < TEST_MIN_DURATION) {
         return {TEST_MIN_DURATION};
     }
@@ -82,23 +84,20 @@ void run_test_suite()
     const auto executor = std::make_shared<connection::target_executor>(
         get_program_options()->value("path_to_target"));
 
-    auto [test_type, tests] =
-        TestDirParser::parse_dir(get_program_options()->value("test_dir"));
+    auto tests = TestDirParser::parse_dir(get_program_options()->value("test_dir"));
 
-    std::cout << "Test count: " << tests.size() << std::endl;
 
-    run_analyzer analyzer;
+    TestType test_type = get_program_options()->value("goal") == "coverage" ? BRANCH_COVERAGE : ERROR_CALL;
+    run_analyzer analyzer(test_type);
 
-    uint32_t max_exec_megabytes = boost::lexical_cast<size_t>(get_program_options()->value("max_exec_megabytes"));
+    std::cout << "Test count: " << tests.size() << "\nTest type: " << get_program_options()->value("goal") << std::endl;
+
+    uint64_t max_exec_megabytes = boost::lexical_cast<size_t>(get_program_options()->value("max_exec_megabytes"));
     executor->init_shared_memory(1024 * 1024 * max_exec_megabytes);
 
     auto time_limit = boost::lexical_cast<size_t>(get_program_options()->value("max_exec_milliseconds"));
 
-    bool error_reached = false;
-
     for (const auto limit : calculate_waves(time_limit, tests.size())) {
-
-        if (error_reached) break;
 
         executor->set_timeout(limit);
         std::cout << "Running test with timeout: " << limit << std::endl;
@@ -115,13 +114,6 @@ void run_test_suite()
             executor->execute_target();
 
             analyzer.add_execution(executor->get_shared_memory());
-
-            if (test_type == TestDirParser::CALL &&
-                executor->get_shared_memory().get_termination() ==
-                    instrumentation::target_termination::ver_error_reached) {
-                error_reached = true;
-                break;
-            }
 
             if (executor->get_shared_memory().get_termination() ==
                        instrumentation::target_termination::normal) {
@@ -140,8 +132,8 @@ void run_test_suite()
         std::filesystem::path(get_program_options()->value("output_dir"))
             .append("result.json");
 
-    if (test_type == TestDirParser::CALL) {
-        save_results_to_json(result_file, {error_reached, results.second});
+    if (test_type == ERROR_CALL) {
+        save_results_to_json(result_file, {results.first, results.second});
     }
     else {
         save_results_to_json(result_file, results);

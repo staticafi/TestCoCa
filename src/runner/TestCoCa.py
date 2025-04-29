@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import re
 import subprocess
 import sys
 import os
@@ -104,8 +105,9 @@ def help(self_dir):
     print("================")
     print("help                 Prints this help message.")
     print("input_file <PATH>    A source C file to build and test.")
-    print("test_suite <PATH>      A directory where tests are located.")
+    print("test_suite <PATH>    A directory where tests are located.")
     print("output_dir <PATH>    A directory under which all results and intermediate files will be saved.")
+    print("goal       <PATH>    A .prp file specifying the coverage goal. By default branch coverage is calculated.")
     print("                     If not specified, then the current directory is used.")
     print("skip_building        Skip building of the source C file.")
     print("skip_testing         Skip testing of the built source C file.")
@@ -128,6 +130,31 @@ def help(self_dir):
 
 def version(self_dir):
     _execute([ os.path.join(self_dir, "tools", "@DRIVER_FILE@"), "--version"], None)
+
+# taken from https://gitlab.com/sosy-lab/software/test-suite-validator/-/blob/main/suite_validation/__init__.py?ref_type=heads
+def parse_coverage_goal_file(goal_file: str):
+    if not goal_file:
+        print("No goal file specified, using branch coverage as default goal")
+        return ["--inst_br"],["--goal", "coverage"]
+
+    with open(goal_file, encoding="UTF-8") as inp:
+        content = inp.read().strip()
+    prop_match = re.match(
+        r"COVER\s*\(\s*init\s*\(\s*main\s*\(\s*\)\s*\)\s*,\s*FQL\s*\(COVER\s+EDGES\s*\((.*)\)\s*\)\s*\)",
+        content,
+    )
+    if not prop_match:
+        raise ValueError(f"No valid coverage goal specification in file {goal_file}: {content[:100]}")
+
+    match_str = prop_match.group(1).strip()
+
+    if match_str.startswith("@CALL"):
+        err_func = match_str[6:-1]
+        return ["--inst_err", err_func], ["--goal", "call"]
+    elif match_str == "@DECISIONEDGE":
+        return ["--inst_br"], ["--goal", "coverage"]
+
+    raise ValueError(f"Only error coverage and branch coverage are supported")
 
 def prepare_test_suite(test_suite: str, output_dir: str) -> str:
     ts_path = Path(test_suite)
@@ -163,6 +190,7 @@ def main():
     old_cwd = os.path.abspath(os.getcwd())
     input_file = None
     test_suite = None
+    goal_file = None
     output_dir = old_cwd
     clear_output_dir = False
     skip_building = False
@@ -189,6 +217,9 @@ def main():
         elif arg == "--test_suite" and i+1 < len(sys.argv):
             test_suite = os.path.normpath(os.path.abspath(sys.argv[i+1]))
             i += 1
+        elif arg == "--goal" and i+1 < len(sys.argv):
+            goal_file = os.path.normpath(os.path.abspath(sys.argv[i+1]))
+            i += 1
         elif arg == "--output_dir" and i+1 < len(sys.argv) and not os.path.isfile(sys.argv[i+1]):
             output_dir = os.path.normpath(os.path.abspath(sys.argv[i+1]))
             os.makedirs(output_dir, exist_ok=True)
@@ -201,12 +232,6 @@ def main():
             skip_testing = True
         elif arg == "--m32":
             use_m32 = True
-        elif arg in [ "--inst_br" ]:
-            options_instument.append(arg)
-        elif arg in [ "--inst_err" ]:
-            options_instument.append(arg)
-            options_instument.append(sys.argv[i+1])
-            i += 1
         else:
             options.append(arg)
         i += 1
@@ -214,13 +239,16 @@ def main():
     if clear_output_dir is True and os.path.isdir(output_dir):
         shutil.rmtree(output_dir)
 
+    goal_options = parse_coverage_goal_file(goal_file)
+    print(goal_options)
+
     old_cwd = os.getcwd()
     os.chdir(output_dir)
     try:
         if input_file is None:
             raise Exception("Cannot find the input file.")
         if skip_building is False:
-            build(self_dir, input_file, output_dir, options_instument, use_m32, silent_mode)
+            build(self_dir, input_file, output_dir, options_instument + goal_options[0], use_m32, silent_mode)
         if skip_testing is False:
             if test_suite is None:
                 raise Exception("Cannot find the test directory")
@@ -235,7 +263,7 @@ def main():
 
             if silent_mode is False: print(f"Test suite dir: {test_suite}", flush=True)
 
-            test(self_dir, input_file, test_suite, output_dir, options, start_time, silent_mode)
+            test(self_dir, input_file, test_suite, output_dir, options + goal_options[1], start_time, silent_mode)
 
             if silent_mode is False: print(",", flush=True)
         if silent_mode is False: print("\"exit_code\": 0,", flush=True)

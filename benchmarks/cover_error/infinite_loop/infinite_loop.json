@@ -2,7 +2,8 @@
     "args": {
         "max_exec_milliseconds": 30000,
         "max_exec_megabytes": 1024,
-        "m32": false
+        "m32": false,
+        "goal": "property/coverage-reach_error.prp"
     },
     "results": {
         "coverage": 1

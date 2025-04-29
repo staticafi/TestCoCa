@@ -12,6 +12,9 @@ program_options::program_options(int argc, char* argv[])
 
     iomodels::configuration const  io_cfg{};
 
+    add_option("goal", "Test type the target executable is instrumented for. Currently 'call' or 'coverage'", "1");
+    add_value("goal", "coverage");
+
     add_option("max_exec_milliseconds", "Max number of milliseconds for benchmark execution.", "1");
     add_value("max_exec_milliseconds", std::to_string(io_cfg.max_exec_milliseconds));
 

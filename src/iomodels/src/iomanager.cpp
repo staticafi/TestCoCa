@@ -28,7 +28,7 @@ void  iomanager::set_config(configuration const&  cfg)
     stdin_ptr = nullptr;
 }
 
-input_model* iomanager::get_stdin() const
+input_model* iomanager::get_stdin() const // TODO unused
 {
     if (stdin_ptr == nullptr)
         stdin_ptr = std::make_unique<input_model>(1024*1024);

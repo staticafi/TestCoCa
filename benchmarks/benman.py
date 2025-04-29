@@ -165,11 +165,10 @@ class Benchmark:
             [
                 benman.runner_script,
                 "--skip_testing",
-                "--inst_br",
-                "--inst_err", "reach_error",
                 "--input_file", self.src_file,
                 "--output_dir", output_dir,
-            ] + (["--m32"] if "m32" in self.config["args"] and self.config["args"]["m32"] is True else []),
+            ] + (["--m32"] if "m32" in self.config["args"] and self.config["args"]["m32"] is True else []) +
+            ((["--goal"] + [self.config["args"]["goal"]]) if "goal" in self.config["args"] else []),
             output_dir
             )
 
@@ -192,7 +191,8 @@ class Benchmark:
                 "--input_file", self.src_file,
                 "--test_suite", self.test_suite,
                 "--output_dir", output_dir,
-            ],
+            ] +
+            ((["--goal"] + [self.config["args"]["goal"]]) if "goal" in self.config["args"] else []),
             output_dir
             )
 
@@ -213,7 +213,7 @@ class Benchmark:
                     if expected_coverage == actual_coverage:
                         return True
 
-                else: return True
+                return False
 
         except Exception as e:
             self.log("FAILURE due to an EXCEPTION: " + str(e), "EXCEPTION[" + str(e) + "]\n")
@@ -264,8 +264,11 @@ class Benman:
             ASSUMPTION(os.path.isfile(json_path),
                        f"Missing JSON configuration: {json_path}")
 
-            test_suite_dir = os.path.join(benchmark_dir, "test-suite")
-            ASSUMPTION(os.path.isdir(test_suite_dir) or os.path.isfile(f"{test_suite_dir}.zip"),
+            if os.path.exists(os.path.join(benchmark_dir, "test-suite.zip")):
+                test_suite_dir = os.path.join(benchmark_dir, "test-suite.zip")
+            else:
+                test_suite_dir = os.path.join(benchmark_dir, "test-suite")
+            ASSUMPTION(os.path.exists(test_suite_dir),
                        f"Missing test_suite directory in {benchmark_dir}")
 
             if os.path.isdir(test_suite_dir):

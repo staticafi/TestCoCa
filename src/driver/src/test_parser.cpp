@@ -8,7 +8,7 @@
 
 using namespace instrumentation;
 
-TestBuffer::TestBuffer() : offset(0), buffer(200)
+TestBuffer::TestBuffer() : offset(0), buffer(1000)
 {
 }
 
@@ -25,7 +25,7 @@ uint64_t TestBuffer::size() const
 void TestBuffer::write(auto val, type_of_input_bits type)
 {
     if (buffer.size() < offset + sizeof(val) + 1) {
-        buffer.resize(buffer.capacity() * 2);
+        buffer.resize(buffer.size() * 2);
     }
 
     buffer[offset++] = (char) type;
@@ -35,33 +35,16 @@ void TestBuffer::write(auto val, type_of_input_bits type)
 
 namespace TestDirParser {
 
-TestType getTestType(std::filesystem::path& path) {
-    if (!is_regular_file(path))
-        throw std::runtime_error("metadata.xml file not found");
-
-    std::ifstream file(path);
-    std::string content(
-        (std::istreambuf_iterator<char>(file)),
-        std::istreambuf_iterator<char>()
-    );
-
-    return boost::algorithm::contains(content, "@DECISIONEDGE") ? COVERAGE : CALL;
-}
-
-std::pair<TestType, tests> parse_dir(
-    const std::string& dir_path)
+tests parse_dir(const std::string &test_dir)
 {
-    std::filesystem::path metadata_path(dir_path + "/metadata.xml");
-    auto test_type = getTestType(metadata_path);
-
     tests tests;
-    for (auto file : std::filesystem::directory_iterator(dir_path)) {
+    for (const auto& file : std::filesystem::directory_iterator(test_dir)) {
         if (file.path().filename().string().find("test") != std::string::npos) {
             tests.emplace(parse_test(file.path()));
         }
     }
 
-    return {test_type, tests};
+    return tests;
 }
 
 void write_untyped(TestBuffer& buffer, const std::string& value_str) {
