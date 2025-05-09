@@ -9,16 +9,18 @@
 
 class TestBuffer {
     std::vector<uint8_t> buffer;
-    uint64_t offset;
+    uint64_t offset = 0;
+    uint64_t inputs = 0;
 
 public:
     TestBuffer();
     void write(auto val, instrumentation::type_of_input_bits type);
-    uint64_t size() const;
+    uint64_t byte_count() const;
+    uint64_t input_count() const;
     const uint8_t *data() const;
 
     bool operator==(const TestBuffer& other) const {
-        return buffer == other.buffer;
+        return buffer == other.buffer && offset == other.offset && inputs == other.inputs;
     }
 
     friend size_t hash_value(const TestBuffer& buf) {

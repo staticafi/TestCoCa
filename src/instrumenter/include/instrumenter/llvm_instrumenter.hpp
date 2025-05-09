@@ -10,7 +10,7 @@ struct llvm_instrumenter {
 
     bool runOnFunction(llvm::Function& F, bool instBr, bool instErr, std::string& targetFunc);
 
-    void instrumentCondBr(llvm::BranchInst *brInst) const;
+    void instrumentCondBr(auto *brInst) const;
 
     void instrumentVerifierError(llvm::Function *function) const;
 
@@ -26,7 +26,7 @@ private:
     llvm::FunctionCallee processCondBrFunc;
     llvm::FunctionCallee processVerErrFunc;
 
-    std::string const renamePrefix{"__qmi_rename_prefix__"};
+    std::string const renamePrefix{"__testcoca_rename_prefix__"};
 
     unsigned int basicBlockCounter;
     unsigned int condBrCounter;

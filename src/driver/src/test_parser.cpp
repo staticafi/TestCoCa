@@ -1,14 +1,15 @@
+#include <charconv>
 #include <boost/lexical_cast.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <driver/test_parser.hpp>
 #include <filesystem>
 #include <iostream>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/process/filesystem.hpp>
+#include <boost/filesystem.hpp>
 
 using namespace instrumentation;
 
-TestBuffer::TestBuffer() : offset(0), buffer(1000)
+TestBuffer::TestBuffer() : buffer(1000)
 {
 }
 
@@ -17,9 +18,13 @@ const uint8_t *TestBuffer::data() const
     return buffer.data();
 }
 
-uint64_t TestBuffer::size() const
+uint64_t TestBuffer::byte_count() const
 {
     return offset;
+}
+
+uint64_t TestBuffer::input_count() const {
+    return inputs;
 }
 
 void TestBuffer::write(auto val, type_of_input_bits type)
@@ -27,6 +32,8 @@ void TestBuffer::write(auto val, type_of_input_bits type)
     if (buffer.size() < offset + sizeof(val) + 1) {
         buffer.resize(buffer.size() * 2);
     }
+
+    ++inputs;
 
     buffer[offset++] = (char) type;
     memcpy(buffer.data() + offset, &val, sizeof(val));
@@ -39,12 +46,28 @@ tests parse_dir(const std::string &test_dir)
 {
     tests tests;
     for (const auto& file : std::filesystem::directory_iterator(test_dir)) {
-        if (file.path().filename().string().find("test") != std::string::npos) {
+        if (file.path().filename().string() != "metadata.xml") {
             tests.emplace(parse_test(file.path()));
         }
     }
 
     return tests;
+}
+
+unsigned __int128 parse_uint128(const std::string &value_str) {
+    unsigned __int128 val = 0;
+    for (int i = 0; i < value_str.size(); i++) {
+        char c = value_str[i];
+
+        if (i == 0 && c == '-') continue;
+
+        if (c >= '0' && c <= '9') {
+            val = val * 10 + (c - '0');
+        } else {
+            throw std::invalid_argument("Invalid character '" + value_str + "'");
+        }
+    }
+    return val;
 }
 
 void write_untyped(TestBuffer& buffer, const std::string& value_str) {
@@ -60,11 +83,11 @@ void write_untyped(TestBuffer& buffer, const std::string& value_str) {
             return;
         } catch (boost::bad_lexical_cast&) {}
         try {
-            __int128 val = boost::lexical_cast<uint8_t>(value_str);
-            buffer.write((uint64_t*)(&val)[0], type_of_input_bits::SINT64);
-            buffer.write((uint64_t*)(&val)[1], type_of_input_bits::UINT64);
+            __int128 val = parse_uint128(value_str);
+            val *= value_str[0] == '-' ? -1 : 1; //UB??
+            buffer.write(val, type_of_input_bits::SINT128);
             return;
-        } catch (boost::bad_lexical_cast&) {}
+        } catch (...) {}
     }
     else {
         try {
@@ -78,11 +101,10 @@ void write_untyped(TestBuffer& buffer, const std::string& value_str) {
             return;
         } catch (boost::bad_lexical_cast&) {}
         try {
-            unsigned __int128 val = boost::lexical_cast<uint8_t>(value_str);
-            buffer.write((uint64_t*)(&val)[0], type_of_input_bits::UINT64);
-            buffer.write((uint64_t*)(&val)[1], type_of_input_bits::UINT64);
+            unsigned __int128 val = parse_uint128(value_str);
+            buffer.write(val, type_of_input_bits::UINT128);
             return;
-        } catch (boost::bad_lexical_cast&) {}
+        } catch (...) {}
     }
 
     try {
@@ -138,14 +160,13 @@ void write_typed(TestBuffer& buffer, const std::string& type_str,
             buffer.write(boost::lexical_cast<uint64_t>(value_str), type_of_input_bits::UINT64);
 
         if (type_str == "int128") {
-            __int128 num = boost::lexical_cast<__int128>(value_str);
-            buffer.write((uint64_t*)(&num)[0], type_of_input_bits::SINT64);
-            buffer.write((uint64_t*)(&num)[1], type_of_input_bits::SINT64);
+            __int128 num = parse_uint128(value_str);
+            num *= value_str[0] == '-' ? -1 : 1; //UB??
+            buffer.write(num, type_of_input_bits::SINT128);
         }
         if (type_str == "uint128") {
-            unsigned __int128 num = boost::lexical_cast<unsigned __int128>(value_str);
-            buffer.write((int64_t*)(&num)[0], type_of_input_bits::SINT64);
-            buffer.write((uint64_t*)(&num)[1], type_of_input_bits::SINT64);
+            unsigned __int128 num = parse_uint128(value_str);
+            buffer.write(num, type_of_input_bits::UINT128);
         }
 
     } catch (const boost::bad_lexical_cast& e) {
@@ -160,6 +181,7 @@ TestBuffer parse_test(const std::filesystem::path& test_path)
     read_xml(test_path, pt);
 
     TestBuffer buffer;
+    uint64_t input_count = 0;
 
     const auto& testcase = pt.get_child("testcase");
 
@@ -168,11 +190,18 @@ TestBuffer parse_test(const std::filesystem::path& test_path)
 
         auto type_str = node.get<std::string>("<xmlattr>.type", "");
 
-        if (type_str.empty()) {
-            write_untyped(buffer, node.data());
-        } else {
-            write_typed(buffer, type_str, node.data());
+        auto data = node.data();
+        if (data.length() == 3 && data[0] == '\'' && data[2]== '\'') {
+            data = std::to_string(data[1]);
         }
+
+        if (type_str.empty()) {
+            write_untyped(buffer, data);
+        } else {
+            write_typed(buffer, type_str, data);
+        }
+
+        ++input_count;
     }
 
     return buffer;

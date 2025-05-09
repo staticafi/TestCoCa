@@ -1,14 +1,7 @@
+#include <boost/lexical_cast.hpp>
 #include <target/target.hpp>
 #include <utility/config.hpp>
-#if COMPILER() == COMPILER_VC()
-#   define _Bool bool
-    struct INT128 { std::int64_t _[2]; }; 
-    struct UINT128 { std::uint64_t _[2]; }; 
-#else
-#   include <stdbool.h>
-#   define INT128 __int128 
-#   define UINT128 unsigned __int128 
-#endif
+#include <stdbool.h>
 
 static_assert(sizeof(bool) == 1, "sizeof(bool) != 1");
 
@@ -104,17 +97,15 @@ size_t __VERIFIER_nondet_size_t() {
 }
 
 #if CPU_TYPE() == CPU64()
-    INT128 __VERIFIER_nondet_int128() {
-        INT128 n;
-        target->on_read(&n, type_of_input_bits::SINT64);
-        target->on_read(&n + 8, type_of_input_bits::SINT64);
+    __int128 __VERIFIER_nondet_int128() {
+        __int128 n;
+        target->on_read(&n, type_of_input_bits::SINT128);
         return n;
     }
 
-    UINT128 __VERIFIER_nondet_uint128() {
-        UINT128 n;
-        target->on_read(&n, type_of_input_bits::UINT64);
-        target->on_read(&n + 8, type_of_input_bits::UINT64);
+    unsigned __int128 __VERIFIER_nondet_uint128() {
+        unsigned __int128 n;
+        target->on_read(&n, type_of_input_bits::UINT128);
         return n;
     }
 #endif

@@ -20,10 +20,10 @@ bool llvm_instrumenter::doInitialization(Module* M)
     Int32Ty = IntegerType::getInt32Ty(C);
     VoidTy = Type::getVoidTy(C);
 
-    processCondBrFunc = module->getOrInsertFunction("__qmi_process_br_instr",
+    processCondBrFunc = module->getOrInsertFunction("__testcoca_process_br_instr",
                                                     VoidTy, Int32Ty);
 
-    processVerErrFunc = module->getOrInsertFunction("__qmi_process_ver_error",
+    processVerErrFunc = module->getOrInsertFunction("__testcoca_process_ver_error",
                                                     VoidTy);
 
     basicBlockCounter = 0;
@@ -42,7 +42,7 @@ void llvm_instrumenter::renameFunctions() const {
     }
 }
 
-void llvm_instrumenter::instrumentCondBr(BranchInst* brInst) const {
+void llvm_instrumenter::instrumentCondBr(auto* brInst) const {
     IRBuilder builder(brInst);
 
     Value* location = ConstantInt::get(Int32Ty, condBrCounter);
@@ -68,7 +68,7 @@ void llvm_instrumenter::addCondBrCount() const {
         true,
         GlobalValue::ExternalLinkage,
         initializer,
-        "__qmi_cond_br_count");
+        "__testcoca_cond_br_count");
 
     br_count->setAlignment(Align(4));
 }
@@ -82,7 +82,7 @@ bool llvm_instrumenter::runOnFunction(Function& F, bool instBr, bool instErr, st
     }
 
     if (F.getName() == "main") {
-        F.setName("__qmi_original_main");
+        F.setName("__testcoca_original_main");
     }
 
     for (BasicBlock& BB : F) {
@@ -97,14 +97,21 @@ bool llvm_instrumenter::runOnFunction(Function& F, bool instBr, bool instErr, st
 
         if (instBr) {
             auto* brInst = dyn_cast<BranchInst>(BB.getTerminator());
-            if (!brInst || !brInst->isConditional()) {
-                continue;
+            if (brInst && brInst->isConditional()) {
+                ++condBrCounter;
+                instrumentCondBr(brInst);
             }
 
-            ++condBrCounter;
-            instrumentCondBr(brInst);
-        }
+            for (auto& I: BB) {
+                if (auto *selInst = dyn_cast<SelectInst>(&I)) {
+                    ++condBrCounter;
+                    instrumentCondBr(selInst);
+                    break;
+                }
+            }
 
+        }
     }
+
     return true;
 }

@@ -1,19 +1,17 @@
 #include <cstdint>
 #include <target/instrumentation_types.hpp>
 #include <target/target.hpp>
-#include <utility/basic_numeric_types.hpp>
-#include <utility/invariants.hpp>
 
 using namespace instrumentation;
 
 extern "C" {
 
-void __qmi_process_br_instr(uint32_t const id, bool const direction)
+void __testcoca_process_br_instr(uint32_t const id, bool const direction)
 {
     target->process_br_instr(id, static_cast<condition_coverage>(direction));
 }
 
-void __qmi_process_ver_error(uint32_t const id)
+void __testcoca_process_ver_error(uint32_t const id)
 {
     target->process_ver_error();
 }

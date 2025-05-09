@@ -16,47 +16,6 @@ size_t br_instr_coverage_info::flattened_size() {
     return sizeof(id) + sizeof(condition_coverage);
 }
 
-type_of_input_bits from_id(natural_8_bit const  id)
-{
-    switch (id)
-    {
-        case  0U: return type_of_input_bits::BOOLEAN;
-
-        case  1U: return type_of_input_bits::UINT8;
-        case  2U: return type_of_input_bits::SINT8;
-
-        case  3U: return type_of_input_bits::UINT16;
-        case  4U: return type_of_input_bits::SINT16;
-
-        case  5U: return type_of_input_bits::UINT32;
-        case  6U: return type_of_input_bits::SINT32;
-
-        case  7U: return type_of_input_bits::UINT64;
-        case  8U: return type_of_input_bits::SINT64;
-
-        case  9U: return type_of_input_bits::FLOAT32;
-        case 10U: return type_of_input_bits::FLOAT64;
-
-        default: { UNREACHABLE(); return type_of_input_bits::UINT8; }
-    }
-}
-
-type_of_input_bits from_string(std::string&& type_str) {
-    if (type_str == "bool") {return type_of_input_bits::BOOLEAN;}
-    if (type_str == "unsigned char") {return type_of_input_bits::UINT8;}
-    if (type_str == "char") {return type_of_input_bits::SINT8;}
-    if (type_str == "unsigned short") {return type_of_input_bits::UINT16;}
-    if (type_str == "short") {return type_of_input_bits::SINT16;}
-    if (type_str == "unsigned int") {return type_of_input_bits::UINT32;}
-    if (type_str == "int") {return type_of_input_bits::SINT32;}
-    if (type_str == "unsigned long") {return type_of_input_bits::UINT64;}
-    if (type_str == "long") {return type_of_input_bits::SINT64;}
-    if (type_str == "float") {return type_of_input_bits::FLOAT32;}
-    if (type_str == "double") {return type_of_input_bits::FLOAT64;}
-    UNREACHABLE();
-}
-
-
 natural_8_bit num_bytes(type_of_input_bits type)
 {
     switch (type)
@@ -76,6 +35,9 @@ natural_8_bit num_bytes(type_of_input_bits type)
         case type_of_input_bits::SINT64:
         case type_of_input_bits::FLOAT64:
             return 8U;
+        case type_of_input_bits::UINT128:
+        case type_of_input_bits::SINT128:
+            return 16U;
         default: { UNREACHABLE(); return 0U; }
     }
 }

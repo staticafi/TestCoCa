@@ -8,28 +8,20 @@
 namespace iomodels {
 
 struct input_model {
-    using byte_count_type    = uint64_t;
     using type_of_input_bits = instrumentation::type_of_input_bits;
-    using input_types_vector = std::vector<type_of_input_bits>;
 
-    input_model(byte_count_type max_bytes_);
+    input_model(uint64_t max_bytes_);
 
     void clear();
-    void save(connection::shared_memory& dest) const;
     void load(connection::shared_memory& src);
-    byte_count_type max_bytes() const;
+    uint64_t max_bytes() const;
 
     vecu8 const& get_bytes() const
     {
         return bytes;
     }
 
-    input_types_vector const& get_types() const
-    {
-        return types;
-    }
-
-    byte_count_type num_bytes_read() const
+    uint64_t num_bytes_read() const
     {
         return cursor;
     }
@@ -42,20 +34,19 @@ struct input_model {
     template <typename T>
     void read(T* ptr, connection::shared_memory& dest)
     {
+        if (read_inputs >= input_count) {
+            dest.set_termination(instrumentation::target_termination::insufficient_data);
+            exit(0);
+        }
+
+        ++read_inputs;
+
         auto const type = (type_of_input_bits) bytes[cursor++];
         uint8_t const count = num_bytes(type);
 
         if (cursor + count > max_bytes()) {
             dest.set_termination(
                 instrumentation::target_termination::boundary_condition_violation);
-            exit(0);
-        }
-        if (!dest.can_accept_bytes(count + 2)) {
-            dest.set_termination(instrumentation::target_termination::medium_overflow);
-            exit(0);
-        }
-        if (cursor + count > bytes.size()) {
-            dest.set_termination(instrumentation::target_termination::insufficient_data);
             exit(0);
         }
 
@@ -80,6 +71,12 @@ struct input_model {
                 *ptr = (T) *(float*) (bytes.data() + cursor); break;
             case type_of_input_bits::FLOAT64:
                 *ptr = (T) *(double*) (bytes.data() + cursor); break;
+#if CPU_TYPE() == CPU64()
+            case type_of_input_bits::UINT128:
+                *ptr = (T) *(unsigned __int128*) (bytes.data() + cursor); break;
+            case type_of_input_bits::SINT128:
+                *ptr = (T) *(__int128*) (bytes.data() + cursor); break;
+#endif
             default: ;
         }
 
@@ -88,10 +85,11 @@ struct input_model {
 
 
    private:
-    byte_count_type m_max_bytes;
-    byte_count_type cursor;
+    uint64_t read_inputs = 0;
+    uint64_t input_count;
+    uint64_t m_max_bytes;
+    uint64_t cursor;
     vecu8 bytes;
-    input_types_vector types;
 };
 
 using input_model_ptr = std::unique_ptr<input_model>;

@@ -79,6 +79,7 @@ class Benchmark:
     def _execute(self, cmdline : str, output_dir : str) -> None:
         cmd = [x for x in cmdline if len(x) > 0]
         self.log(" ".join(cmd))
+        print(" ".join(cmd))
         subprocess.run(cmd)
 
     def _execute_and_check_output(self, cmdline : str, desired_output : str, work_dir : str = None) -> None:
@@ -206,14 +207,12 @@ class Benchmark:
                 if expected_result == actual_result:
                     return True
 
-                if ("coverage_map" in outcomes and "coverage_map" in self.config["results"]):
+                if "coverage_map" in outcomes and "coverage_map" in self.config["results"]:
                     expected_coverage = self.config["results"]["coverage_map"]
                     actual_coverage = outcomes["coverage_map"]
 
                     if expected_coverage == actual_coverage:
                         return True
-
-                return False
 
         except Exception as e:
             self.log("FAILURE due to an EXCEPTION: " + str(e), "EXCEPTION[" + str(e) + "]\n")
@@ -272,11 +271,6 @@ class Benman:
                        f"Missing test_suite directory in {benchmark_dir}")
 
             if os.path.isdir(test_suite_dir):
-                test_pattern = os.path.join(test_suite_dir, f"*test_*.xml")
-                test_files = glob.glob(test_pattern)
-                ASSUMPTION(len(test_files) >= 1,
-                           f"Expected at least 1 test files matching *test_*.xml, found {len(test_files)}")
-
                 metadata_path = os.path.join(test_suite_dir, "metadata.xml")
                 ASSUMPTION(os.path.isfile(metadata_path),
                            f"Missing metadata.xml in test suite")

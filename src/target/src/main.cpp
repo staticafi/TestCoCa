@@ -3,8 +3,8 @@
 #include <target/target.hpp>
 
 extern "C" {
-    extern int __qmi_cond_br_count;
-    void __qmi_original_main();
+    extern int __testcoca_cond_br_count;
+    void __testcoca_original_main();
 }
 
 namespace instrumentation {
@@ -31,11 +31,10 @@ int main(int argc, char* argv[])
     target->shared_memory.clear();
 
     target->shared_memory << target_termination::normal;
-    target->shared_memory << target_termination::normal;
+    target->shared_memory << __testcoca_cond_br_count;
+    target->shared_memory << (uint64_t) 0; // checksum
 
-    target->shared_memory << __qmi_cond_br_count;
-
-    __qmi_original_main();
+    __testcoca_original_main();
 
     target->shared_memory.set_termination(target_termination::normal);
 

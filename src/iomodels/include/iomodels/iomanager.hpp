@@ -17,8 +17,6 @@ struct  iomanager
 
     instrumentation::target_termination  get_termination() const { return termination; }
 
-    input_model*  get_stdin() const;
-
 private:
     iomanager();
 

@@ -86,7 +86,6 @@ void run_test_suite()
 
     auto tests = TestDirParser::parse_dir(get_program_options()->value("test_dir"));
 
-
     TestType test_type = get_program_options()->value("goal") == "coverage" ? BRANCH_COVERAGE : ERROR_CALL;
     run_analyzer analyzer(test_type);
 
@@ -103,23 +102,29 @@ void run_test_suite()
         std::cout << "Running test with timeout: " << limit << std::endl;
 
         for (auto test_buf_it = tests.begin(); test_buf_it != tests.end();) {
-            auto size = test_buf_it->size();
+            uint64_t byte_count = test_buf_it->byte_count();
 
             executor->get_shared_memory().clear();
             executor->get_shared_memory() << (uint16_t) max_exec_megabytes;
-            executor->get_shared_memory() << (uint64_t) size;
+            executor->get_shared_memory() << byte_count;
+            executor->get_shared_memory() << test_buf_it->input_count();
             executor->get_shared_memory().accept_bytes(test_buf_it->data(),
-                                                       size);
+                                                       byte_count);
 
             executor->execute_target();
 
             analyzer.add_execution(executor->get_shared_memory());
 
-            if (executor->get_shared_memory().get_termination() ==
-                       instrumentation::target_termination::normal) {
-                tests.erase(test_buf_it++);
-            } else {
+            auto termination = executor->get_shared_memory().get_termination();
+
+            if (termination != instrumentation::target_termination::normal) {
+                std::cout << "Abnormal termination: " << (int) *termination << std::endl;
+            }
+
+            if (termination == instrumentation::target_termination::timeout) {
                 ++test_buf_it;
+            } else {
+                tests.erase(test_buf_it++);
             }
         }
     }
@@ -128,16 +133,17 @@ void run_test_suite()
 
     std::cout << "Coverage: " << std::setprecision(4) << results.first << std::endl;
 
+    if (test_type == ERROR_CALL) {
+        std::cout << "Result: " << (results.first ? "TRUE" : "FALSE") << std::endl;
+    } else {
+        std::cout << "Result: DONE" << std::endl;
+    }
+
     auto result_file =
         std::filesystem::path(get_program_options()->value("output_dir"))
             .append("result.json");
 
-    if (test_type == ERROR_CALL) {
-        save_results_to_json(result_file, {results.first, results.second});
-    }
-    else {
-        save_results_to_json(result_file, results);
-    }
+    save_results_to_json(result_file, results);
 }
 
 void run(int argc, char* argv[])

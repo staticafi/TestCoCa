@@ -23,8 +23,6 @@ struct  br_instr_coverage_info
     condition_coverage  coverage;
 };
 
-
-
 enum struct type_of_input_bits : natural_8_bit
 {
     BOOLEAN = 0U,
@@ -41,14 +39,12 @@ enum struct type_of_input_bits : natural_8_bit
     UINT64 = 7U,
     SINT64 = 8U,
 
-    FLOAT32 = 9U,
-    FLOAT64 = 10U,
+    UINT128 = 9U,
+    SINT128 = 10U,
+
+    FLOAT32 = 11U,
+    FLOAT64 = 12U,
 };
 
-type_of_input_bits from_id(natural_8_bit id);
-type_of_input_bits from_string(std::string&&);
 natural_8_bit num_bytes(type_of_input_bits type);
-bool is_float(type_of_input_bits type);
-bool is_signed(type_of_input_bits type);
-
 }

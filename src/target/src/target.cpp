@@ -26,10 +26,15 @@ void target::process_br_instr(const br_instr_id id, const condition_coverage cov
     auto i = it->second;
 
     auto mem = (br_instr_coverage_info*)(shared_memory.get_memory() +
-                sizeof(target_termination) * 2 +
-                sizeof(uint32_t));
+                sizeof(target_termination) +
+                sizeof(uint64_t) + // checksum
+                sizeof(uint32_t)); // br_count
+
 
     if (inserted) {
+        *shared_memory.checksum() += id;
+        *shared_memory.checksum() += covered_branch;
+
         ++index;
         mem[i] = br_instr_coverage_info(id, covered_branch);
         return;
@@ -37,9 +42,10 @@ void target::process_br_instr(const br_instr_id id, const condition_coverage cov
 
     auto saved_cov = mem[i].coverage;
 
-    if (saved_cov != instrumentation::BOTH &&
+    if (saved_cov != BOTH &&
         saved_cov != covered_branch) {
-        mem[i].coverage = instrumentation::BOTH;
+        *shared_memory.checksum() += BOTH - saved_cov;
+        mem[i].coverage = BOTH;
     }
 }
 

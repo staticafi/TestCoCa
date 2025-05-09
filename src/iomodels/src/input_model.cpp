@@ -10,39 +10,28 @@ using namespace instrumentation;
 namespace  iomodels {
 
 
-input_model::input_model(byte_count_type const  max_bytes_)
+input_model::input_model(uint64_t const  max_bytes_)
     : m_max_bytes(max_bytes_)
     , cursor(0U) {}
 
 
-void  input_model::clear()
+void input_model::clear()
 {
     cursor = 0U;
     bytes.clear();
-    types.clear();
 }
 
-void  input_model::save(shared_memory& dest) const
+void input_model::load(shared_memory&  src)
 {
-    INVARIANT(bytes.size() <= max_bytes());
-
-    dest << (byte_count_type)bytes.size();
-    dest.accept_bytes(bytes.data(),(byte_count_type)bytes.size());
-
-    dest << (byte_count_type)types.size();
-    dest.accept_bytes(types.data(), (byte_count_type)types.size());
-}
-
-void  input_model::load(shared_memory&  src)
-{
-    byte_count_type num_bytes;
+    uint64_t num_bytes;
     src >> num_bytes;
-    bytes.resize(num_bytes);
+    src >> input_count;
+    bytes.resize(num_bytes, 0);
     src.deliver_bytes(bytes.data(), num_bytes);
 }
 
 
-input_model::byte_count_type input_model::max_bytes() const {
+uint64_t input_model::max_bytes() const {
     return m_max_bytes;
 }
 }

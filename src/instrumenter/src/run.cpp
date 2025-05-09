@@ -1,5 +1,6 @@
 #include <llvm/DebugInfo/DIContext.h>
 #include <llvm/Transforms/Utils.h>
+#include <llvm/Transforms/Scalar.h>
 #include <llvm/IR/Function.h>
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/IR/LLVMContext.h>
@@ -45,8 +46,7 @@ void run(int argc, char* argv[])
         return;
     }
 
-    bool instBr = get_program_options()->has("inst_br");
-    bool instErr = get_program_options()->has("inst_err");
+    bool instBr = get_program_options()->has("inst_br"); bool instErr = get_program_options()->has("inst_err");
 
     if (!instBr && !instErr) {
         std::cout << "No instrumentation type selected (--inst_br or --inst_err <func>)" << std::endl;
@@ -79,9 +79,16 @@ void run(int argc, char* argv[])
         }
     }
 
-    // remove switch statements from llvm IR
     llvm::legacy::PassManager passManager;
+
+    // remove switch statements from llvm IR
     passManager.add(llvm::createLowerSwitchPass());
+
+    llvm::SimplifyCFGOptions Options;
+    Options.BonusInstThreshold = 0;
+    // force all selects to branches
+    passManager.add(llvm::createCFGSimplificationPass(Options));
+
     passManager.run(*M);
 
     llvm_instrumenter instrumenter;

@@ -45,6 +45,8 @@ class shared_memory {
 
     uint32_t get_cond_br_count() const;
 
+    uint64_t *checksum() const;
+
     template <typename T,
               typename std::enable_if<std::is_trivially_copyable<T>::value,
                                       int>::type = 0>
