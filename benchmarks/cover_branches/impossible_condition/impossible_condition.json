@@ -1,0 +1,14 @@
+{
+    "args": {
+        "max_exec_milliseconds": 30000,
+        "max_exec_megabytes": 1024,
+        "m32": false
+    },
+    "results": {
+        "coverage": 0.75,
+        "coverage_map": {
+            "2": "TRUE",
+            "1": "TRUE"
+        }
+    }
+}
