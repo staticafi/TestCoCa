@@ -179,14 +179,7 @@ def prepare_test_suite(test_suite: str, output_dir: str) -> str:
 
         return str(extract_dir.resolve())
 
-    if ts_path.is_dir():
-        metadata_path = os.path.join(ts_path, "metadata.xml")
-        assert (os.path.isfile(metadata_path))
-        return str(ts_path.resolve())
-
-
-
-    raise FileNotFoundError(f"Test suite path not found: {test_suite}")
+    return str(ts_path.resolve())
 
 def main():
     start_time = time.time()

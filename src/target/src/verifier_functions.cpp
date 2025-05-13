@@ -23,19 +23,19 @@ using namespace instrumentation;
 extern "C" {
 char __VERIFIER_nondet_char() {
     char n;
-    target->on_read<char>(&n, type_of_input_bits::SINT8);
+    target->on_read<char>(&n);
     return n;
 }
 
 unsigned char __VERIFIER_nondet_uchar() {
     unsigned char n;
-    target->on_read( &n, type_of_input_bits::UINT8);
+    target->on_read(&n);
     return n;
 }
 
 _Bool __VERIFIER_nondet_bool() {
     char n;
-    target->on_read( &n, type_of_input_bits::BOOLEAN);
+    target->on_read(&n);
     if (n > 0) {
         return true;
     }
@@ -44,81 +44,81 @@ _Bool __VERIFIER_nondet_bool() {
 
 short __VERIFIER_nondet_short() {
     short n;
-    target->on_read( &n, type_of_input_bits::SINT16);
+    target->on_read(&n);
     return n;
 }
 
 unsigned short __VERIFIER_nondet_ushort() {
     unsigned short n;
-    target->on_read( &n, type_of_input_bits::UINT16);
+    target->on_read(&n);
     return n;
 }
 
 int __VERIFIER_nondet_int() {
     int n;
-    target->on_read(&n, type_of_input_bits::SINT32);
+    target->on_read(&n);
     return n;
 }
 
 unsigned int __VERIFIER_nondet_uint() {
     unsigned int n;
-    target->on_read( &n, type_of_input_bits::UINT32);
+    target->on_read(&n);
     return n;
 }
 
 long __VERIFIER_nondet_long() {
     long n;
-    target->on_read( &n, sizeof(n) == 4 ? type_of_input_bits::SINT32 : type_of_input_bits::SINT64);
+    target->on_read(&n);
     return n;
 }
 
 unsigned long __VERIFIER_nondet_ulong() {
     unsigned long n;
-    target->on_read( &n, sizeof(n) == 4 ? type_of_input_bits::UINT32 : type_of_input_bits::UINT64);
+    target->on_read(&n);
     return n;
 }
 
 long long int __VERIFIER_nondet_longlong() {
     long long int n;
-    target->on_read( &n, sizeof(n) == 4 ? type_of_input_bits::SINT32 : type_of_input_bits::SINT64);
+    target->on_read(&n);
     return n;
 }
 
 unsigned long long int __VERIFIER_nondet_ulonglong() {
     unsigned long long int n;
-    target->on_read( &n, sizeof(n) == 4 ? type_of_input_bits::UINT32 : type_of_input_bits::UINT64);
+    target->on_read(&n);
     return n;
 }
 
 size_t __VERIFIER_nondet_size_t() {
     size_t n;
-    target->on_read( &n, sizeof(n) == 4 ? type_of_input_bits::UINT32 : type_of_input_bits::UINT64);
+    target->on_read(&n);
     return n;
 }
 
 #if CPU_TYPE() == CPU64()
     __int128 __VERIFIER_nondet_int128() {
         __int128 n;
-        target->on_read(&n, type_of_input_bits::SINT128);
+        target->on_read(&n);
         return n;
     }
 
     unsigned __int128 __VERIFIER_nondet_uint128() {
         unsigned __int128 n;
-        target->on_read(&n, type_of_input_bits::UINT128);
+        target->on_read(&n);
         return n;
     }
 #endif
 
 float __VERIFIER_nondet_float() {
     float n;
-    target->on_read( &n, type_of_input_bits::FLOAT32);
+    target->on_read(&n);
     return n;
 }
 
 double __VERIFIER_nondet_double() {
     double n;
-    target->on_read( &n, type_of_input_bits::FLOAT64);
+    target->on_read(&n);
     return n;
 }
 

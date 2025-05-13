@@ -44,12 +44,20 @@ namespace TestDirParser {
 
 tests parse_dir(const std::string &test_dir)
 {
+    bool has_metadata = false;
     tests tests;
-    for (const auto& file : std::filesystem::directory_iterator(test_dir)) {
-        if (file.path().filename().string() != "metadata.xml") {
+
+    for (const auto& file : std::filesystem::recursive_directory_iterator(test_dir)) {
+        if (file.is_regular_file() && file.path().extension() == ".xml") {
+            if (!has_metadata && file.path().filename().string() == "metadata.xml") {
+                has_metadata = true;
+                continue;
+            }
             tests.emplace(parse_test(file.path()));
         }
     }
+
+    if (!has_metadata) throw std::runtime_error("test-suite does not contain metadata.xml file");
 
     return tests;
 }
@@ -178,7 +186,12 @@ void write_typed(TestBuffer& buffer, const std::string& type_str,
 TestBuffer parse_test(const std::filesystem::path& test_path)
 {
     boost::property_tree::ptree pt;
-    read_xml(test_path, pt);
+
+    try {
+        read_xml(test_path, pt);
+    } catch (const boost::property_tree::xml_parser_error& e) {
+        std::cout << e.what() << std::endl;
+    }
 
     TestBuffer buffer;
     uint64_t input_count = 0;

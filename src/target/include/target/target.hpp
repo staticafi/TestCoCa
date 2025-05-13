@@ -29,7 +29,7 @@ class target {
     void load_config();
 
     template<typename T>
-    void on_read(T* ptr, type_of_input_bits const type)
+    void on_read(T* ptr)
     {
         std::lock_guard lock(mutex);
         stdin_model->read(ptr, shared_memory);

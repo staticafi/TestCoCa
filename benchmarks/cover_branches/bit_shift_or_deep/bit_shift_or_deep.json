@@ -5,9 +5,10 @@
         "m32": false
     },
     "results": {
-        "coverage": 1,
+        "coverage": 0.8,
         "coverage_map": {
-            "4": "BOTH",
+            "5": "FALSE",
+            "4": "TRUE",
             "3": "BOTH",
             "2": "BOTH",
             "1": "BOTH"
