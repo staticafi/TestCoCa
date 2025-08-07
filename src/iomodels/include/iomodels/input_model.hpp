@@ -44,12 +44,6 @@ struct input_model {
         auto const type = (type_of_input_bits) bytes[cursor++];
         uint8_t const count = num_bytes(type);
 
-        if (cursor + count > max_bytes()) {
-            dest.set_termination(
-                instrumentation::target_termination::boundary_condition_violation);
-            exit(0);
-        }
-
         switch (type) {
             case type_of_input_bits::UINT8:
                 *ptr = (T) *(uint8_t*) (bytes.data() + cursor); break;

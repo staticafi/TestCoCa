@@ -49,6 +49,8 @@ void save_results_to_json(const std::string& filename, const std::pair<double, c
 std::vector<size_t> calculate_waves(size_t limit, size_t test_count) {
     if (test_count == 0) return {};
 
+    if (test_count == 1) return {limit};
+
     if (limit / test_count < TEST_MIN_DURATION) {
         return {TEST_MIN_DURATION};
     }
@@ -63,15 +65,16 @@ std::vector<size_t> calculate_waves(size_t limit, size_t test_count) {
         const size_t total_consumed = wave_time * test_count;
 
         if (total_consumed > remaining) {
-            if (!waves.empty()) {
-                waves.back() += remaining / test_count;
-            }
             break;
         }
 
         waves.push_back(wave_time);
         remaining -= total_consumed;
         current *= r;
+    }
+
+    if (!waves.empty() && remaining > 0) {
+        waves.back() += remaining / test_count;
     }
 
     if (waves.empty()) waves.push_back(TEST_MIN_DURATION);
@@ -95,6 +98,10 @@ void run_test_suite()
     executor->init_shared_memory(1024 * 1024 * max_exec_megabytes);
 
     auto time_limit = boost::lexical_cast<size_t>(get_program_options()->value("max_exec_milliseconds"));
+
+    for (const auto limit : calculate_waves(time_limit, tests.size())) {
+        std::cout << limit << std::endl;
+    }
 
     for (const auto limit : calculate_waves(time_limit, tests.size())) {
 
