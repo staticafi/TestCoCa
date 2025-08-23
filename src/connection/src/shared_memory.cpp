@@ -101,8 +101,12 @@ uint32_t shared_memory::get_cond_br_count() const {
     return *(uint32_t*) (memory + sizeof(target_termination));
 }
 
+uint32_t shared_memory::get_goal_count() const {
+    return *(uint32_t*) (memory + sizeof(target_termination) + sizeof(uint32_t));
+}
+
 uint64_t* shared_memory::checksum() const {
-    return (uint64_t*) (memory + sizeof(target_termination) + sizeof(uint32_t));
+    return (uint64_t*) (memory + sizeof(target_termination) + sizeof(uint32_t) + sizeof(uint32_t));
 }
 
 void shared_memory::set_termination(target_termination termination)

@@ -7,22 +7,19 @@
 
 enum TestType {
     BRANCH_COVERAGE,
+    TESTCOMP_COVERAGE,
     ERROR_CALL
 };
 
 using coverage_map = std::unordered_map<instrumentation::br_instr_id, instrumentation::condition_coverage>;
 
-class run_analyzer {
-    TestType test_type;
-    bool goal_reached = false;
-    coverage_map coverage;
-    uint64_t br_instr_count = 0;
-
-   public:
-    explicit run_analyzer(TestType test_type): test_type(test_type) {}
-
-    void add_execution(connection::shared_memory& src);
-    std::pair<double, coverage_map> get_result();
-    void reset();
+class IRunAnalyzer {
+public:
+    virtual ~IRunAnalyzer() = default;
+    virtual void add_execution(connection::shared_memory& src) = 0;
+    virtual double get_result() = 0;
+    virtual void reset() = 0;
+    virtual TestType get_type() const = 0;
 };
 
+std::unique_ptr<IRunAnalyzer> create_run_analyzer(TestType test_type);

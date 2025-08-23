@@ -48,11 +48,6 @@ void run(int argc, char* argv[])
 
     bool instBr = get_program_options()->has("inst_br"); bool instErr = get_program_options()->has("inst_err");
 
-    if (!instBr && !instErr) {
-        std::cout << "No instrumentation type selected (--inst_br or --inst_err <func>)" << std::endl;
-        return;
-    }
-
     std::string targetFunc;
 
     if (instErr && (targetFunc = get_program_options()->value("inst_err")).empty()) {

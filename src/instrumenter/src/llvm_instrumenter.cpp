@@ -29,7 +29,6 @@ bool llvm_instrumenter::doInitialization(Module* M)
     basicBlockCounter = 0;
     condBrCounter = 0;
 
-
     return true;
 }
 

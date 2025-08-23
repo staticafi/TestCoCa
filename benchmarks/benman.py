@@ -169,6 +169,7 @@ class Benchmark:
                 "--input_file", self.src_file,
                 "--output_dir", output_dir,
             ] + (["--m32"] if "m32" in self.config["args"] and self.config["args"]["m32"] is True else []) +
+            (["--testcomp"] if "testcomp" in self.config["args"] and self.config["args"]["testcomp"] is True else []) +
             ((["--goal"] + [self.config["args"]["goal"]]) if "goal" in self.config["args"] else []),
             output_dir
             )
@@ -286,7 +287,7 @@ class Benman:
                         benchmarks.append(complete_and_check_benchmark_path(os.path.join(folder, name)))
             return benchmarks
 
-        kinds = ["cover_branches", "cover_error"]
+        kinds = ["cover_branches", "cover_error", "cover_branches_testcomp"]
         benchmarks = []
         if name == "all":
             for kind in kinds:
@@ -309,7 +310,6 @@ class Benman:
         for pathname in benchmark_paths:
             benchmark = Benchmark(pathname, self.runner_script, self.args.verbose)
             if not benchmark.test(self.benchmarks_dir, self.output_dir):
-                print("FAILED")
                 num_failures += 1
         if num_failures > 0:
             print("FAILURE[" + str(num_failures) + "/" + str(len(benchmark_paths)) + "]")

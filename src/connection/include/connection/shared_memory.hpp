@@ -44,6 +44,7 @@ class shared_memory {
     void set_termination(instrumentation::target_termination termination);
 
     uint32_t get_cond_br_count() const;
+    uint32_t get_goal_count() const;
 
     uint64_t *checksum() const;
 

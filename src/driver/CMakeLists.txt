@@ -13,7 +13,7 @@ add_executable(${THIS_TARGET_NAME}
     include/driver/test_parser.hpp
     src/test_parser.cpp
 
-    include/driver/run_analyzer.hpp
+        include/driver/run_analyzer.hpp
     src/run_analyzer.cpp
 )
 

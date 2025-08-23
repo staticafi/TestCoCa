@@ -90,7 +90,12 @@ void run_test_suite()
     auto tests = TestDirParser::parse_dir(get_program_options()->value("test_dir"));
 
     TestType test_type = get_program_options()->value("goal") == "coverage" ? BRANCH_COVERAGE : ERROR_CALL;
-    run_analyzer analyzer(test_type);
+    if (test_type == BRANCH_COVERAGE && get_program_options()->has("testcomp")) {
+        std::cout << "TestComp mode" << std::endl;
+        test_type =  TESTCOMP_COVERAGE;
+    }
+
+    auto analyzer  = create_run_analyzer(test_type);
 
     std::cout << "Test count: " << tests.size() << "\nTest type: " << get_program_options()->value("goal") << std::endl;
 
@@ -120,7 +125,7 @@ void run_test_suite()
 
             executor->execute_target();
 
-            analyzer.add_execution(executor->get_shared_memory());
+            analyzer->add_execution(executor->get_shared_memory());
 
             auto termination = executor->get_shared_memory().get_termination();
 
@@ -136,21 +141,20 @@ void run_test_suite()
         }
     }
 
-    auto results = analyzer.get_result();
+    auto results = analyzer->get_result();
 
-    std::cout << "Coverage: " << std::setprecision(4) << results.first << std::endl;
+    std::cout << "Coverage: " << std::setprecision(4) << results << std::endl;
 
     if (test_type == ERROR_CALL) {
-        std::cout << "Result: " << (results.first ? "TRUE" : "FALSE") << std::endl;
+        std::cout << "Result: " << (results ? "TRUE" : "FALSE") << std::endl;
     } else {
         std::cout << "Result: DONE" << std::endl;
     }
 
     auto result_file =
-        std::filesystem::path(get_program_options()->value("output_dir"))
-            .append("result.json");
+        std::filesystem::path(get_program_options()->value("output_dir")).append("result.json");
 
-    save_results_to_json(result_file, results);
+    save_results_to_json(result_file, {results,  {}});
 }
 
 void run(int argc, char* argv[])

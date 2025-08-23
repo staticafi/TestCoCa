@@ -15,6 +15,8 @@ program_options::program_options(int argc, char* argv[])
     add_option("goal", "Test type the target executable is instrumented for. Currently 'call' or 'coverage'", "1");
     add_value("goal", "coverage");
 
+    add_option("testcomp", "Coverage will be calculated label-adder script", "0");
+
     add_option("max_exec_milliseconds", "Max number of milliseconds for benchmark execution.", "1");
     add_value("max_exec_milliseconds", std::to_string(io_cfg.max_exec_milliseconds));
 

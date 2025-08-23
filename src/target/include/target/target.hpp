@@ -24,6 +24,7 @@ class target {
 
     void process_br_instr(br_instr_id id, condition_coverage covered_branch);
     void process_ver_error();
+    void process_goal(goal_id id);
 
     void load_stdin();
     void load_config();

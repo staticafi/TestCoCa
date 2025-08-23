@@ -28,7 +28,8 @@ void target::process_br_instr(const br_instr_id id, const condition_coverage cov
     auto mem = (br_instr_coverage_info*)(shared_memory.get_memory() +
                 sizeof(target_termination) +
                 sizeof(uint64_t) + // checksum
-                sizeof(uint32_t)); // br_count
+                sizeof(uint32_t) + // br_count
+                sizeof(uint32_t)); // goal_count
 
 
     if (inserted) {
@@ -47,6 +48,25 @@ void target::process_br_instr(const br_instr_id id, const condition_coverage cov
         *shared_memory.checksum() += BOTH - saved_cov;
         mem[i].coverage = BOTH;
     }
+}
+
+void target::process_goal(const goal_id id)
+{
+    std::lock_guard lock(mutex);
+
+    if (!shared_memory.can_accept_bytes(
+            br_instr_coverage_info::flattened_size())) {
+        shared_memory.set_termination(target_termination::medium_overflow);
+        exit(0);
+    }
+
+    auto mem = shared_memory.get_memory() +
+                sizeof(target_termination) +
+                sizeof(uint64_t) + // checksum
+                sizeof(uint32_t) + // br_count
+                sizeof(uint32_t); // goal_count
+
+    mem[id] = true;
 }
 
 void target::process_ver_error()
