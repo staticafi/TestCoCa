@@ -194,6 +194,7 @@ class Benchmark:
                 "--test_suite", self.test_suite,
                 "--output_dir", output_dir,
             ] +
+            (["--testcomp"] if "testcomp" in self.config["args"] and self.config["args"]["testcomp"] is True else []) +
             ((["--goal"] + [self.config["args"]["goal"]]) if "goal" in self.config["args"] else []),
             output_dir
             )

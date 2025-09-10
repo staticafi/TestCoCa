@@ -38,24 +38,23 @@ def execute_command(command, timeout=None):
 
 def transform_goals(input_file):
     pattern = re.compile(r'^Goal_(\d+):;$')
-    extern_declaration = "extern void __testcoca_process_goal(int goal);\n"
 
     try:
         with open(input_file, 'r') as f:
             content = f.readlines()
 
-        label_num = 0
+        label_count = 0
         new_content = []
         for line in content:
             stripped = line.strip()
             if pattern.match(stripped):
-                label_num = int(pattern.match(stripped).group(1))
-                new_line = f"__testcoca_process_goal({label_num - 1});\n"
+                new_line = f"__testcoca_process_goal({label_count});\n"
                 new_content.append(new_line)
+                label_count += 1
             else:
                 new_content.append(line)
 
-        new_content.insert(0, f"const int __testcoca_goal_count = {label_num};")
+        new_content.insert(0, f"const int __testcoca_goal_count = {label_count};\n")
 
         with open(input_file, 'w') as f:
             f.writelines(new_content)
@@ -64,6 +63,35 @@ def transform_goals(input_file):
     except Exception as e:
         print(f"Error processing {input_file}: {str(e)}")
         return False
+
+
+def process_llvm_ir_goals(file):
+    with open(file, 'r') as f:
+        content = f.read()
+
+    call_pattern = r'(.*call.*@__testcoca_process_goal\(i32 noundef )(\d+)(\).*)'
+    total_calls = len(re.findall(call_pattern, content))
+
+    print(f"Found {total_calls} calls to __testcoca_process_goal")
+
+    start_id = 0
+    def replace_callback(match):
+        nonlocal start_id
+        prefix, old_id, suffix = match.groups()
+        new_call = f"{prefix}{start_id}{suffix}"
+        start_id += 1
+        return new_call
+
+    updated_content = re.sub(call_pattern, replace_callback, content)
+
+    updated_content = re.sub(
+        r'@__testcoca_goal_count = dso_local constant i32 \d+, align 4',
+        f'@__testcoca_goal_count = dso_local constant i32 {total_calls}, align 4',
+        updated_content
+    )
+
+    with open(file, 'w') as f:
+        f.write(updated_content)
 
 
 def instrument(config):
@@ -90,11 +118,18 @@ def instrument(config):
 
 
 def instrument_testcomp(config):
+    input_filename = os.path.basename(config.input_file)
+    input_name, input_ext = os.path.splitext(input_filename)
+    temp_input_path = os.path.join(config.output_dir, f"{input_name}_tidy{input_ext}")
+
+    with open(config.input_file, 'r') as src, open(temp_input_path, 'w') as dst:
+        dst.write(src.read())
+
     clang_tidy_cmd = ["clang-tidy",
                       "--checks=-*,readability-braces-around-statements",
                       "--fix-errors",
-                      config.input_file
-                      ]
+                      temp_input_path
+    ]
 
     if not config.silent:
         print("Running clang-tidy...")
@@ -102,17 +137,17 @@ def instrument_testcomp(config):
     subprocess.run(clang_tidy_cmd, capture_output=True, text=True)
 
     cmd = [os.path.join(config.self_dir, "label-adder"),
-           "--labels-branching-only",
-           "--labels-switch-only",
-           "--labels-ternary-only",
-           config.input_file
-           ]
+            "--labels-branching-only",
+            "--labels-switch-only",
+            "--labels-ternary-only",
+            temp_input_path
+    ]
 
     if not config.silent: print("Adding labels...")
 
-    result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+    result = subprocess.run(cmd, capture_output=True, text=True)
 
-    inst_c_file = config.instrumented_ll.replace('.ll', '_temp.c')
+    inst_c_file = config.instrumented_ll.replace('.ll', '.c')
     with open(inst_c_file, 'w') as f:
         f.write(result.stdout)
 
@@ -131,6 +166,8 @@ def instrument_testcomp(config):
     if not execute_command(compile_cmd):
         print(f"Failed to compile instrumented C code to LLVM: {inst_c_file}")
         return False
+
+    process_llvm_ir_goals(config.ll_file)
 
     cmd = [os.path.join(config.self_dir, "tools", "@INSTRUMENTER_FILE@")] + [
         "--input", config.ll_file, "--output", config.instrumented_ll
@@ -324,6 +361,7 @@ def main():
 
     if not config.skip_testing:
         if not config.test_suite or not os.path.exists(config.test_suite):
+            print(config.test_suite)
             print("Missing or invalid test suite")
             return 1
 

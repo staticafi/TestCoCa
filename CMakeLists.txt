@@ -1,6 +1,9 @@
+cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+
 project(TestCoCa)
 
-cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+set(CMAKE_C_COMPILER "/usr/bin/clang-18")
+set(CMAKE_CXX_COMPILER "/usr/bin/clang++-18")
 
 macro(append_compiler_flags FLAGS)
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${FLAGS}")

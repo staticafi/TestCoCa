@@ -2,7 +2,6 @@
 #include <instrumenter/program_options.hpp>
 #include <utility/config.hpp>
 #include <utility/timeprof.hpp>
-#include <utility/log.hpp>
 #include <fstream>
 #include <iostream>
 
