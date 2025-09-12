@@ -120,7 +120,7 @@ def instrument(config):
 def instrument_testcomp(config):
     input_filename = os.path.basename(config.input_file)
     input_name, input_ext = os.path.splitext(input_filename)
-    temp_input_path = os.path.join(config.output_dir, f"{input_name}_tidy{input_ext}")
+    temp_input_path = os.path.join(config.output_dir, f"{input_name}_tidy.c")
 
     with open(config.input_file, 'r') as src, open(temp_input_path, 'w') as dst:
         dst.write(src.read())
