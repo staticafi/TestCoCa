@@ -8,7 +8,7 @@ struct target_executor {
     target_executor(std::string target_invocation);
 
     void init_shared_memory(std::size_t size);
-    void set_timeout(natural_16_bit const timeout_ms_);
+    void set_timeout(std::size_t timeout_ms_);
     void execute_target();
 
     shared_memory& get_shared_memory()
@@ -16,7 +16,7 @@ struct target_executor {
         return shm;
     }
 
-    natural_16_bit timeout_ms;
+    std::uint32_t timeout_ms;
 
    private:
     std::string target_invocation;

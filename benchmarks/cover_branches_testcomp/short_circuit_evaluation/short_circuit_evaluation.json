@@ -6,9 +6,6 @@
         "testcomp": true
     },
     "results": {
-        "coverage": 1,
-        "coverage_map": {
-            "1": "BOTH"
-        }
+        "coverage": 1
     }
 }

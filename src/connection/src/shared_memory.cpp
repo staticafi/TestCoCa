@@ -23,7 +23,7 @@ size_t shared_memory::get_size() const
     return size;
 }
 
-void shared_memory::set_size(size_t size)
+void shared_memory::set_size(std::size_t size)
 {
     shm.truncate(size + sizeof(*saved));
 }

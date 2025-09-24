@@ -85,7 +85,7 @@ def process_llvm_ir_goals(file):
     updated_content = re.sub(call_pattern, replace_callback, content)
 
     updated_content = re.sub(
-        r'@__testcoca_goal_count = dso_local constant i32 \d+, align 4',
+        r'@__testcoca_goal_count = .* i32 \d+, align 4',
         f'@__testcoca_goal_count = dso_local constant i32 {total_calls}, align 4',
         updated_content
     )

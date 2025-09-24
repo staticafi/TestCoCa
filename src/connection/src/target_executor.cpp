@@ -32,7 +32,7 @@ void target_executor::init_shared_memory(std::size_t size)
     get_shared_memory().map_region();
 }
 
-void target_executor::set_timeout(natural_16_bit const timeout_ms_)
+void target_executor::set_timeout(std::size_t const timeout_ms_)
 {
     timeout_ms = timeout_ms_;
 }
