@@ -1,0 +1,49 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "run TestCoCa.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/dist/TestCoCa.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/dist",
+            "justMyCode": true,
+            "args": [
+                "--output_dir", "output",
+                "--input_file", "${workspaceFolder}/temp/_.c",
+                "--test_suite", "${workspaceFolder}/temp/_.zip",
+                "--goal",       "${workspaceFolder}/temp/_.prp",
+                "--max_exec_megabytes",     "512",
+                "--max_exec_milliseconds",  "900000",
+                "--m32"
+               ]
+        },
+        {
+            "name": "debug testcoca",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${command:cmake.launchTargetPath}",
+            "cwd": "${workspaceFolder}/dist/output",
+            "args": [
+                "--output_dir",     ".",
+                "--path_to_target", "__target",
+                "--test_dir",       "_",
+                "--goal",           "coverage",
+                "--max_exec_megabytes", "512",
+                "--max_exec_milliseconds", "900000",
+                //"--testcomp"
+            ],
+            "stopAtEntry": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ]
+}
