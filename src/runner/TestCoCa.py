@@ -358,6 +358,7 @@ def main():
         if not build(config):
             print("Build failed")
             return 1
+        sys.stdout.flush()
 
     if not config.skip_testing:
         if not config.test_suite or not os.path.exists(config.test_suite):
@@ -369,11 +370,13 @@ def main():
         if not prepared_test_suite:
             return 1
         config.test_suite = prepared_test_suite
+        sys.stdout.flush()
 
         if not config.silent: print(f"Using test suite: {config.test_suite}")
         if not run_tests(config):
             print("Testing failed")
             return 1
+        sys.stdout.flush()
 
     if not config.silent:
         print(f"Completed successfully in {time.time() - start_time:.2f} seconds")
