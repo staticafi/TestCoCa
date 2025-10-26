@@ -3,7 +3,7 @@
 #include <target/target.hpp>
 
 extern "C" {
-    extern uint32_t __testcoca_cond_br_count;
+    extern uint32_t __testcoca_cond_br_count __attribute__((weak));
     extern uint32_t __testcoca_goal_count __attribute__((weak));
     void __testcoca_original_main();
 }
@@ -32,13 +32,10 @@ int main(int argc, char* argv[])
     target->shared_memory.clear();
 
     target->shared_memory << target_termination::normal;
-    target->shared_memory << __testcoca_cond_br_count;
 
-    if (&__testcoca_goal_count != nullptr) { // check if the variable is define
-        target->shared_memory << __testcoca_goal_count;
-    } else {
-        target->shared_memory << (uint32_t) 0;
-    }
+    // check if the global variables are defined
+    target->shared_memory << (&__testcoca_cond_br_count != nullptr ? __testcoca_cond_br_count : (uint32_t) 0);
+    target->shared_memory << (&__testcoca_goal_count != nullptr ? __testcoca_goal_count : (uint32_t) 0);
 
     target->shared_memory << (uint64_t) 0; // checksum
 

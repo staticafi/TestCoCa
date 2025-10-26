@@ -6,6 +6,6 @@
         "testcomp": true
     },
     "results": {
-        "coverage": 1
+        "coverage": 0.625
     }
 }

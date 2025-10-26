@@ -33,7 +33,7 @@ class shared_memory {
     bool can_accept_bytes(size_t n) const;
     bool can_deliver_bytes(size_t n) const;
 
-    void accept_bytes(const void* src, size_t n);
+    void accept_bytes(const void* src, size_t n) const;
     void deliver_bytes(void* dest, size_t n);
 
     bool exhausted() const;

@@ -9,6 +9,7 @@
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/raw_os_ostream.h>
+#include <llvm/Transforms/Utils/BasicBlockUtils.h>
 
 #include <filesystem>
 #include <fstream>
@@ -46,7 +47,9 @@ void run(int argc, char* argv[])
         return;
     }
 
-    bool instBr = get_program_options()->has("inst_br"); bool instErr = get_program_options()->has("inst_err");
+    bool instBr = get_program_options()->has("inst_br");
+    bool instGoals = get_program_options()->has("inst_goals");
+    bool instErr = get_program_options()->has("inst_err");
 
     std::string targetFunc;
 
@@ -81,7 +84,7 @@ void run(int argc, char* argv[])
 
     llvm::SimplifyCFGOptions Options;
     Options.BonusInstThreshold = 0;
-    // force all selects to branches
+    // transform switch instructions to br instructions
     passManager.add(llvm::createCFGSimplificationPass(Options));
 
     passManager.run(*M);
@@ -90,11 +93,9 @@ void run(int argc, char* argv[])
     instrumenter.doInitialization(M.get());
     instrumenter.renameFunctions();
 
-    for (auto & it : *M) {
-        instrumenter.runOnFunction(it, instBr, instErr,  targetFunc);
-    }
-
-    instrumenter.addCondBrCount();
+    if (instBr) instrumenter.instrument_br(*M);
+    if (instErr) instrumenter.instrument_err(*M, targetFunc);
+    if (instGoals) instrumenter.instrument_goals(*M);
 
     {
         TMPROF_BLOCK();

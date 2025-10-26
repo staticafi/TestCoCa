@@ -58,28 +58,27 @@ bool shared_memory::can_deliver_bytes(size_t const n) const
     return !(memory == nullptr || *saved < cursor + n);
 }
 
-void shared_memory::accept_bytes(const void* src, size_t n)
-{
+void shared_memory::accept_bytes(const void* src, size_t n) const {
     memcpy(memory + *saved, src, n);
-    *saved += (natural_32_bit)n;
+    *saved += (uint32_t)n;
 }
 
 void shared_memory::deliver_bytes(void* dest, size_t n)
 {
     memcpy(dest, memory + cursor, n);
-    cursor += (natural_32_bit)n;
+    cursor += (uint32_t)n;
 }
 
 shared_memory& shared_memory::operator<<(const std::string& src)
 {
-    *this << (natural_32_bit)src.size();
-    accept_bytes(src.data(), (natural_32_bit)src.size());
+    *this << (uint32_t)src.size();
+    accept_bytes(src.data(), (uint32_t)src.size());
     return *this;
 }
 
 shared_memory& shared_memory::operator>>(std::string& dest)
 {
-    natural_32_bit size;
+    uint32_t size;
     *this >> size;
     dest.resize(size);
     deliver_bytes(dest.data(), (size));

@@ -15,6 +15,7 @@ class Config:
         self.output_dir = os.getcwd()
         self.test_suite = None
         self.testcomp = False
+        self.format = False
         self.use_m32 = False
         self.silent = False
         self.skip_building = False
@@ -48,13 +49,14 @@ def transform_goals(input_file):
         for line in content:
             stripped = line.strip()
             if pattern.match(stripped):
-                new_line = f"__testcoca_process_goal({label_count});\n"
-                new_content.append(new_line)
+                new_content.append(f"goto goal_{label_count};\n")
+                new_content.append(f"goal_{label_count}:;\n")
+                new_content.append(f"__testcoca_process_goal({label_count});\n")
                 label_count += 1
             else:
                 new_content.append(line)
 
-        new_content.insert(0, f"const int __testcoca_goal_count = {label_count};\n")
+        #new_content.insert(0, f"const int __testcoca_goal_count = {label_count};\n")
 
         with open(input_file, 'w') as f:
             f.writelines(new_content)
@@ -66,32 +68,48 @@ def transform_goals(input_file):
 
 
 def process_llvm_ir_goals(file):
-    with open(file, 'r') as f:
-        content = f.read()
+    call_pattern = re.compile(r'(\s*.*call.*@__testcoca_process_goal\(i32 noundef\s*)(\d+)(\s*\).*)')
+    count_pattern = re.compile(r'(\s*@__testcoca_goal_count\s*=\s*dso_local\s*constant\s*i32\s*)(\d+)(\s*,\s*align\s*4\s*)')
 
-    call_pattern = r'(.*call.*@__testcoca_process_goal\(i32 noundef )(\d+)(\).*)'
-    total_calls = len(re.findall(call_pattern, content))
+    try:
+        with open(file, 'r') as f:
+            content = f.readlines()
 
-    print(f"Found {total_calls} calls to __testcoca_process_goal")
+        new_content = []
+        current_id = 0
 
-    start_id = 0
-    def replace_callback(match):
-        nonlocal start_id
-        prefix, old_id, suffix = match.groups()
-        new_call = f"{prefix}{start_id}{suffix}"
-        start_id += 1
-        return new_call
+        # Single pass: replace call IDs and collect updated lines
+        for line in content:
+            call_match = call_pattern.match(line)
+            if call_match:
+                prefix, old_id, suffix = call_match.groups()
+                # Preserve the exact whitespace and structure, only change the number
+                new_line = f"{prefix}{current_id}{suffix}"
+                new_content.append(new_line)
+                current_id += 1
+            else:
+                new_content.append(line)
 
-    updated_content = re.sub(call_pattern, replace_callback, content)
+        # Now current_id holds the total number of calls
+        total_calls = current_id
+        print(f"Found {total_calls} calls to __testcoca_process_goal")
 
-    updated_content = re.sub(
-        r'@__testcoca_goal_count = .* i32 \d+, align 4',
-        f'@__testcoca_goal_count = dso_local constant i32 {total_calls}, align 4',
-        updated_content
-    )
+        # Update the goal_count constant in the final content
+        for i, line in enumerate(new_content):
+            count_match = count_pattern.match(line)
+            if count_match:
+                prefix, old_count, suffix = count_match.groups()
+                new_content[i] = f"{prefix}{total_calls}{suffix}"
+                break  # Assuming there's only one occurrence
 
-    with open(file, 'w') as f:
-        f.write(updated_content)
+        with open(file, 'w') as f:
+            f.writelines(new_content)
+
+        return True
+
+    except Exception as e:
+        print(f"Error processing {file}: {str(e)}")
+        return False
 
 
 def instrument(config):
@@ -118,29 +136,11 @@ def instrument(config):
 
 
 def instrument_testcomp(config):
-    input_filename = os.path.basename(config.input_file)
-    input_name, input_ext = os.path.splitext(input_filename)
-    temp_input_path = os.path.join(config.output_dir, f"{input_name}_tidy.c")
-
-    with open(config.input_file, 'r') as src, open(temp_input_path, 'w') as dst:
-        dst.write(src.read())
-
-    clang_tidy_cmd = ["clang-tidy",
-                      "--checks=-*,readability-braces-around-statements",
-                      "--fix-errors",
-                      temp_input_path
-    ]
-
-    if not config.silent:
-        print("Running clang-tidy...")
-
-    subprocess.run(clang_tidy_cmd, capture_output=True, text=True)
-
     cmd = [os.path.join(config.self_dir, "label-adder"),
             "--labels-branching-only",
             "--labels-switch-only",
             "--labels-ternary-only",
-            temp_input_path
+            config.input_file
     ]
 
     if not config.silent: print("Adding labels...")
@@ -167,10 +167,10 @@ def instrument_testcomp(config):
         print(f"Failed to compile instrumented C code to LLVM: {inst_c_file}")
         return False
 
-    process_llvm_ir_goals(config.ll_file)
+    #process_llvm_ir_goals(config.ll_file)
 
     cmd = [os.path.join(config.self_dir, "tools", "@INSTRUMENTER_FILE@")] + [
-        "--input", config.ll_file, "--output", config.instrumented_ll
+        "--input", config.ll_file, "--output", config.instrumented_ll, "--inst_goals"
     ]
 
     if not config.silent: print("Instrumenting LLVM...")
@@ -183,6 +183,26 @@ def instrument_testcomp(config):
 
 
 def build(config):
+    if config.format:
+        input_filename = os.path.basename(config.input_file)
+        input_name, _ = os.path.splitext(input_filename)
+        formatted_path = os.path.join(config.output_dir, f"{input_name}_tidy.c")
+
+        with open(config.input_file, 'r') as src, open(formatted_path, 'w') as dst:
+            dst.write(src.read())
+
+        clang_tidy_cmd = ["clang-tidy",
+                          "--checks=-*,readability-braces-around-statements",
+                          "--fix-errors",
+                          formatted_path
+                          ]
+
+        if not config.silent:
+            print("Running clang-tidy...")
+
+        subprocess.run(clang_tidy_cmd, capture_output=True, text=True)
+        config.input_file = formatted_path
+
     if not config.testcomp:
         if not instrument(config):
             return False
@@ -289,6 +309,7 @@ def print_help(self_dir):
     print("--output_dir <PATH>    Directory for results (default: current dir)")
     print("--goal <PATH>          .prp file for coverage goal (default: branch)")
     print("--testcomp             Use TestCov's label-adder to calculate branch coverage")
+    print("--format               Use clang-tidy to format the source file")
     print("--skip_building        Skip building step")
     print("--skip_testing         Skip testing step")
     print("--silent_mode          Suppress output messages")
@@ -308,7 +329,7 @@ def main():
             print_help(self_dir)
             return 0
         elif arg == "--version":
-            # TODO
+            print("1.0")
             return 0
         elif arg == "--silent_mode":
             config.silent = True
@@ -331,6 +352,8 @@ def main():
             config.skip_testing = True
         elif arg == "--testcomp":
             config.testcomp = True
+        elif arg == "--format":
+            config.format = True
         elif arg == "--m32":
             config.use_m32 = True
         else:
@@ -350,6 +373,10 @@ def main():
     if not config.goal_options or not config.test_options:
         print("Invalid coverage goal configuration")
         return 1
+
+    if config.goal_options[0] == "--inst_err":
+        print("WARNING: Ignoring --testcomp flag, not applicable to cover-error category")
+        config.testcomp = False
 
     os.makedirs(config.output_dir, exist_ok=True)
 
