@@ -122,6 +122,14 @@ double __VERIFIER_nondet_double() {
     return n;
 }
 
+void __VERIFIER_nondet_memory(void* mem, size_t size) {
+    auto *p = (unsigned char*) mem;
+
+    for (int i = 0; i < size; ++i) {
+        p[i] = __VERIFIER_nondet_uchar();
+    }
+}
+
 // aliases --------------
 
 unsigned char __VERIFIER_nondet_u8() { return __VERIFIER_nondet_uchar(); }
