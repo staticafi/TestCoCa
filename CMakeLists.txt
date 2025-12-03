@@ -29,10 +29,8 @@ if(CMAKE_BUILD_TYPE MATCHES "Debug")
     add_definitions(-DDEBUG)
 elseif(CMAKE_BUILD_TYPE MATCHES "Release")
     add_definitions(-DRELEASE)
-elseif(CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo")
-    add_definitions(-DRELEASE)
 else()
-    message(SEND_ERROR "Unknown build type. Use either Debug, Release, or RelWithDebInfo. E.g.: -DCMAKE_BUILD_TYPE=Release")
+    message(SEND_ERROR "Unknown build type. Use either Debug, Release. E.g.: -DCMAKE_BUILD_TYPE=Release")
 endif()
 
 if(NOT DEFINED BUILD_LIBS_32_BIT)
@@ -61,12 +59,6 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 else()
     message(SEND_ERROR "Unknown (unsupported) compiler detected. Supported is only GCC (on Linux) and MSVC (on Windows).")
 endif()
-
-find_library(LIBRT rt)
-
-message("Searching for threads ...")
-set(THREADS_PREFER_PTHREAD_FLAG TRUE)
-find_package(Threads REQUIRED)
 
 message("Searching for Boost library ...")
 set(Boost_USE_STATIC_LIBS   ON)
@@ -111,7 +103,7 @@ add_subdirectory(./src)
 
 if(BUILD_LIBS_32_BIT STREQUAL "No")
     install(DIRECTORY ./benchmarks DESTINATION .)
-    #install(FILES ./LICENSE.txt DESTINATION .)
+    install(FILES ./LICENSE.txt DESTINATION .)
 endif()
 
 message("Generating build files ...")
