@@ -122,7 +122,7 @@ public:
         std::cout << "Total: " << goal_count << std::endl;
         std::cout << "Covered: " << goals_hit << std::endl;
 
-        if (goal_count == 0) return goals_hit == 0 ? 1.0 : 0.0;
+        if (goal_count == 0) return goals_hit == 0 ? 0 : 1;
 
         return (double) goals_hit / goal_count;
     }

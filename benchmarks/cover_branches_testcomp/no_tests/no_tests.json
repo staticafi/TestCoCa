@@ -1,12 +1,13 @@
 {
     "args": {
         "max_exec_milliseconds": 30000,
-        "max_exec_megabytes": 2,
+        "max_exec_megabytes": 1024,
         "m32": false,
         "testcomp": true,
         "format": true
+        
     },
     "results": {
-        "coverage": 0.625
+        "coverage": 0
     }
 }

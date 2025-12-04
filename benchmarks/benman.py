@@ -169,6 +169,7 @@ class Benchmark:
                 "--output_dir", output_dir,
             ] + (["--m32"] if "m32" in self.config["args"] and self.config["args"]["m32"] is True else []) +
             (["--testcomp"] if "testcomp" in self.config["args"] and self.config["args"]["testcomp"] is True else []) +
+            (["--format"] if "format" in self.config["args"] and self.config["args"]["format"] is True else []) +
             ((["--goal"] + [self.config["args"]["goal"]]) if "goal" in self.config["args"] else []),
             output_dir
             )

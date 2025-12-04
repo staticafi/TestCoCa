@@ -3,7 +3,8 @@
         "max_exec_milliseconds": 30000,
         "max_exec_megabytes": 2,
         "m32": false,
-        "testcomp": true
+        "testcomp": true,
+        "format": true
     },
     "results": {
         "coverage": 1
