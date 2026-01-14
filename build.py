@@ -13,7 +13,7 @@ def _execute(command_and_args, timeout_ = None):
 
 def help(self_dir):
     print("Building TestCoCa")
-    print("===============")
+    print("=================")
     print("The script used for fast building of TestCoCa.")
     print("Quick use:")
     print("  python3 ./build.py")
