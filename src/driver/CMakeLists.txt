@@ -23,6 +23,8 @@ target_link_libraries(${THIS_TARGET_NAME}
     iomodels
     target
     utility
+    rt
+    pthread
     ${Boost_LIBRARIES}
     )
 

@@ -218,6 +218,7 @@ def build(config):
     cmd = ["clang++-18"] + (["-m32"] if config.use_m32 else []) + [
         "-O3", config.instrumented_ll
     ] + "@TARGET_NEEDED_COMPILATION_FLAGS@".split() + target_libs + [
+              "-lrt", "-pthread",
               "-o", config.target_file
           ]
 
