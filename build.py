@@ -41,7 +41,6 @@ def init(build_dir, build_config):
             "..",
             "--no-warn-unused-cli",
             "-G Ninja",
-            "-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE",
             "-DCMAKE_C_COMPILER:FILEPATH=clang",
             "-DCMAKE_CXX_COMPILER:FILEPATH=clang++",
             "-DCMAKE_BUILD_TYPE:STRING=" + build_config ]
@@ -56,7 +55,6 @@ def build(build_dir, build_config, use_m32):
             "--no-warn-unused-cli",
             "-G Ninja",
             "-DBUILD_LIBS_32_BIT=" + ("No" if use_m32 is False else "Yes"),
-            "-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE",
             "-DCMAKE_C_COMPILER:FILEPATH=clang",
             "-DCMAKE_CXX_COMPILER:FILEPATH=clang++",
             "-DCMAKE_BUILD_TYPE:STRING=" + build_config ]
