@@ -113,7 +113,7 @@ def process_llvm_ir_goals(file):
 
 
 def instrument(config):
-    cmd = ["clang"] + (["-m32"] if config.use_m32 else []) + [
+    cmd = ["clang-18"] + (["-m32"] if config.use_m32 else []) + [
         "-O0", "-S", "-emit-llvm",
         "-Wno-everything", "-fbracket-depth=1024",
         config.input_file, "-o", config.ll_file
@@ -155,7 +155,7 @@ def instrument_testcomp(config):
 
     if not config.silent: print("Transforming labes to function calls...")
 
-    compile_cmd = ["clang"] + (["-m32"] if config.use_m32 else []) + [
+    compile_cmd = ["clang-18"] + (["-m32"] if config.use_m32 else []) + [
         "-O0", "-S", "-emit-llvm",
         "-Wno-everything", "-fbracket-depth=1024",
         inst_c_file, "-o", config.ll_file
@@ -191,7 +191,7 @@ def build(config):
         with open(config.input_file, 'r') as src, open(formatted_path, 'w') as dst:
             dst.write(src.read())
 
-        clang_tidy_cmd = ["clang-tidy",
+        clang_tidy_cmd = ["clang-tidy-18",
                           "--checks=-*,readability-braces-around-statements",
                           "--fix-errors",
                           formatted_path
@@ -215,7 +215,7 @@ def build(config):
                       for lib in @TARGET_LIBRARIES_FILES_LIST@
     ]
 
-    cmd = ["clang++"] + (["-m32"] if config.use_m32 else []) + [
+    cmd = ["clang++-18"] + (["-m32"] if config.use_m32 else []) + [
         "-O3", config.instrumented_ll
     ] + "@TARGET_NEEDED_COMPILATION_FLAGS@".split() + target_libs + [
               "-o", config.target_file
