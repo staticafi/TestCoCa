@@ -1,5 +1,6 @@
 import os
 import sys
+import math
 import json
 import shutil
 import argparse
@@ -78,7 +79,6 @@ class Benchmark:
     def _execute(self, cmdline : str, output_dir : str) -> None:
         cmd = [x for x in cmdline if len(x) > 0]
         self.log(" ".join(cmd))
-        print(" ".join(cmd))
         subprocess.run(cmd)
 
     def _execute_and_check_output(self, cmdline : str, desired_output : str, work_dir : str = None) -> None:
@@ -177,6 +177,8 @@ class Benchmark:
         self.log("Done", "Done\n")
 
     def test(self, benchmarks_root_dir : str, output_root_dir : str) -> bool:
+        display_name = os.path.relpath(self.src_file, benchmarks_root_dir)
+
         self.log("===")
         self.log("=== testing: " + self.src_file)
         self.log("===")
@@ -206,22 +208,24 @@ class Benchmark:
                 expected_result = float (self.config["results"]["coverage"])
                 actual_result = float (outcomes["coverage"])
 
-                if expected_result == actual_result:
-                    return True
+                if math.isclose(expected_result, actual_result, rel_tol=1e-7):
+                    return True, ""
 
                 if "coverage_map" in outcomes and "coverage_map" in self.config["results"]:
                     expected_coverage = self.config["results"]["coverage_map"]
                     actual_coverage = outcomes["coverage_map"]
 
                     if expected_coverage == actual_coverage:
-                        return True
+                        return True, ""
+
+                detail = "expected " + str(expected_result) + ", got " + str(actual_result)
+                print(display_name + " FAILED (" + detail + ")", flush=True)
 
         except Exception as e:
-            self.log("FAILURE due to an EXCEPTION: " + str(e), "EXCEPTION[" + str(e) + "]\n")
-            return False
+            detail = str(e)
+            print(display_name + " EXCEPTION: " + detail, flush=True)
 
-        print("FAILED", flush=True)
-        return False
+        return False, detail
 
     def clear(self, benchmarks_root_dir : str, output_root_dir : str) -> None:
         self.log("===")
@@ -250,6 +254,8 @@ class Benman:
         ASSUMPTION(os.path.isfile(self.runner_script), "The runner script not found. Build and install the project first.")
 
     def collect_benchmarks(self, name : str) -> list[str]:
+        name = name.rstrip("/")
+
         def complete_and_check_benchmark_path(benchmark_path : str) -> str:
             benchmark_dir = os.path.join(self.benchmarks_dir, benchmark_path)
             benchmark_name = os.path.basename(benchmark_dir)
@@ -307,13 +313,19 @@ class Benman:
 
     def test(self, name : str):
         num_failures = 0
+        failures = []
         benchmark_paths = self.collect_benchmarks(name)
         for pathname in benchmark_paths:
             benchmark = Benchmark(pathname, self.runner_script, self.args.verbose)
-            if not benchmark.test(self.benchmarks_dir, self.output_dir):
+            ok, detail = benchmark.test(self.benchmarks_dir, self.output_dir)
+            if not ok:
                 num_failures += 1
+                failures.append((os.path.relpath(pathname, self.benchmarks_dir), detail))
         if num_failures > 0:
             print("FAILURE[" + str(num_failures) + "/" + str(len(benchmark_paths)) + "]")
+            print("Failed benchmarks:")
+            for name, detail in failures:
+                print("  " + name + "  (" + detail + ")")
             return False
         else:
             print("SUCCESS")
