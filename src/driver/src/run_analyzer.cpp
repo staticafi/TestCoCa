@@ -1,11 +1,10 @@
 #include "driver/run_analyzer.hpp"
 
+#include <iostream>
 #include <numeric>
 #include <boost/property_tree/json_parser.hpp>
 
 typedef uint64_t checksum_t;
-/**
- **/
 
 class BranchCoverageAnalyzer : public IRunAnalyzer {
     uint32_t br_instr_count = 0;
@@ -19,28 +18,33 @@ public:
             std::cout << "WARNING: number of total reported br instructions differs between test runs" << std::endl;
         }
 
-        unsigned char *mem = src.get_memory() +
-                             sizeof(instrumentation::target_termination) +
-                             sizeof(checksum_t) +
-                             sizeof(uint32_t) +
-                             sizeof(uint32_t);
+        checksum_t expected = connection::shared_memory::compute_header_checksum(*src.header());
+        if (expected != src.header()->header_checksum) {
+            std::cout << "WARNING: header checksum failed, discarding execution" << std::endl;
+            return;
+        }
+
+        auto *cov = reinterpret_cast<instrumentation::br_instr_coverage_info *>(src.coverage_ptr());
 
         checksum_t hash = 0;
 
-        for (auto *br_info = reinterpret_cast<instrumentation::br_instr_coverage_info *>(mem);
-             br_info->id != 0;
-             mem += sizeof(instrumentation::br_instr_coverage_info),
-             br_info = reinterpret_cast<instrumentation::br_instr_coverage_info *>(mem)) {
-            hash += br_info->id;
-            hash += br_info->coverage;
+        for (auto *br_info = cov; br_info->id != 0; ++br_info) {
+            hash ^= ((uint64_t)br_info->id << 8) | br_info->coverage;
 
             if (br_info->id > br_instr_count || br_info->coverage > instrumentation::BOTH) {
                 std::cout <<
-                        "WARNING: br instruction id or coverage is outside expected limits and will not be added to the final result."
+                        "WARNING: br instruction id or coverage is outside expected limits, discarding execution"
                         << std::endl;
-                continue;
+                return;
             }
+        }
 
+        if (hash != *src.checksum()) {
+            std::cout << "WARNING: run result data checksum failed, discarding execution" << std::endl;
+            return;
+        }
+
+        for (auto *br_info = cov; br_info->id != 0; ++br_info) {
             if (auto it = coverage.find(br_info->id); it != coverage.end()) {
                 if (it->second != instrumentation::BOTH &&
                     it->second != br_info->coverage) {
@@ -49,10 +53,6 @@ public:
             } else {
                 coverage.emplace(br_info->id, br_info->coverage);
             }
-        }
-
-        if (hash != *src.checksum()) {
-            std::cout << "WARNING: run result data checksum failed" << std::endl;
         }
     }
 
@@ -100,14 +100,26 @@ public:
             std::cout << "WARNING: number of total reported goals differs between test runs" << std::endl;
         }
 
-        unsigned char *mem = src.get_memory() +
-                             sizeof(instrumentation::target_termination) +
-                             sizeof(checksum_t) +
-                             sizeof(uint32_t) +
-                             sizeof(uint32_t);
+        checksum_t expected = connection::shared_memory::compute_header_checksum(*src.header());
+        if (expected != src.header()->header_checksum) {
+            std::cout << "WARNING: header checksum failed, discarding execution" << std::endl;
+            return;
+        }
+
+        auto *cov = src.coverage_ptr();
+
+        checksum_t hash = 0;
+        for (int i = 0; i < goal_count; i++) {
+            if (cov[i]) hash ^= (uint64_t)i;
+        }
+
+        if (hash != *src.checksum()) {
+            std::cout << "WARNING: run result data checksum failed, discarding execution" << std::endl;
+            return;
+        }
 
         for (int i = 0; i < goal_count; i++) {
-            coverage[i] |= mem[i];
+            coverage[i] |= cov[i];
         }
     }
 

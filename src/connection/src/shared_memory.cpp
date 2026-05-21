@@ -85,32 +85,44 @@ shared_memory& shared_memory::operator>>(std::string& dest)
     return *this;
 }
 
+shared_memory::metadata_header* shared_memory::header() const
+{
+    return reinterpret_cast<metadata_header*>(memory);
+}
+
+natural_8_bit* shared_memory::coverage_ptr() const
+{
+    return reinterpret_cast<natural_8_bit*>(header() + 1);
+}
+
 std::optional<target_termination> shared_memory::get_termination() const
 {
-    target_termination termination =
-        static_cast<target_termination>(*memory);
+    target_termination termination = header()->termination;
     if (!valid_termination(termination)) {
         return std::nullopt;
     }
-
     return termination;
 }
 
-uint32_t shared_memory::get_cond_br_count() const {
-    return *(uint32_t*) (memory + sizeof(target_termination));
+uint32_t shared_memory::get_cond_br_count() const
+{
+    return header()->cond_br_count;
 }
 
-uint32_t shared_memory::get_goal_count() const {
-    return *(uint32_t*) (memory + sizeof(target_termination) + sizeof(uint32_t));
+uint32_t shared_memory::get_goal_count() const
+{
+    return header()->goal_count;
 }
 
-uint64_t* shared_memory::checksum() const {
-    return (uint64_t*) (memory + sizeof(target_termination) + sizeof(uint32_t) + sizeof(uint32_t));
+uint64_t* shared_memory::checksum() const
+{
+    return &header()->data_checksum;
 }
 
 void shared_memory::set_termination(target_termination termination)
 {
-    *memory = static_cast<natural_8_bit>(termination);
+    header()->termination = termination;
+    header()->header_checksum = compute_header_checksum(*header());
 }
 
 bool shared_memory::exhausted() const

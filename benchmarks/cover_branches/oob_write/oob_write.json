@@ -1,0 +1,10 @@
+{
+    "args": {
+        "max_exec_milliseconds": 600000,
+        "max_exec_megabytes": 512,
+        "m32": false
+    },
+    "results": {
+        "coverage": 1.0
+    }
+}

@@ -31,13 +31,15 @@ int main(int argc, char* argv[])
 
     target->shared_memory.clear();
 
-    target->shared_memory << target_termination::normal;
+    auto* header = target->shared_memory.header();
+    header->cond_br_count = &__testcoca_cond_br_count != nullptr ? __testcoca_cond_br_count : (uint32_t) 0;
+    header->goal_count = &__testcoca_goal_count != nullptr ? __testcoca_goal_count : (uint32_t) 0;
+    header->termination = target_termination::normal;
 
-    // check if the global variables are defined
-    target->shared_memory << (&__testcoca_cond_br_count != nullptr ? __testcoca_cond_br_count : (uint32_t) 0);
-    target->shared_memory << (&__testcoca_goal_count != nullptr ? __testcoca_goal_count : (uint32_t) 0);
+    header->header_checksum = connection::shared_memory::compute_header_checksum(*header);
+    header->data_checksum = 0;
 
-    target->shared_memory << (uint64_t) 0; // checksum
+    *target->shared_memory.saved_cursor() = sizeof(connection::shared_memory::metadata_header);
 
     __testcoca_original_main();
 

@@ -25,17 +25,10 @@ void target::process_br_instr(const br_instr_id id, const condition_coverage cov
 
     auto i = it->second;
 
-    auto mem = (br_instr_coverage_info*)(shared_memory.get_memory() +
-                sizeof(target_termination) +
-                sizeof(uint64_t) + // checksum
-                sizeof(uint32_t) + // br_count
-                sizeof(uint32_t)); // goal_count
-
+    auto mem = reinterpret_cast<br_instr_coverage_info*>(shared_memory.coverage_ptr());
 
     if (inserted) {
-        *shared_memory.checksum() += id;
-        *shared_memory.checksum() += covered_branch;
-
+        shared_memory.header()->data_checksum ^= ((uint64_t)id << 8) | covered_branch;
         ++index;
         mem[i] = br_instr_coverage_info(id, covered_branch);
         return;
@@ -45,7 +38,8 @@ void target::process_br_instr(const br_instr_id id, const condition_coverage cov
 
     if (saved_cov != BOTH &&
         saved_cov != covered_branch) {
-        *shared_memory.checksum() += BOTH - saved_cov;
+        shared_memory.header()->data_checksum ^= ((uint64_t)id << 8) | saved_cov;
+        shared_memory.header()->data_checksum ^= ((uint64_t)id << 8) | BOTH;
         mem[i].coverage = BOTH;
     }
 }
@@ -60,13 +54,12 @@ void target::process_goal(const goal_id id)
         exit(0);
     }
 
-    auto mem = shared_memory.get_memory() +
-                sizeof(target_termination) +
-                sizeof(uint64_t) + // checksum
-                sizeof(uint32_t) + // br_count
-                sizeof(uint32_t); // goal_count
+    auto cov = shared_memory.coverage_ptr();
 
-    mem[id] = true;
+    if (!cov[id]) {
+        shared_memory.header()->data_checksum ^= (uint64_t)id;
+        cov[id] = true;
+    }
 }
 
 void target::process_ver_error()

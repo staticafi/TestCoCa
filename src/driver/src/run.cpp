@@ -142,6 +142,7 @@ void run_test_suite()
     }
 
     auto results = analyzer->get_result();
+    assert(results >= 0.0 && results <= 1.0);
 
     std::cout << "Coverage: " << std::setprecision(4) << results << std::endl;
 

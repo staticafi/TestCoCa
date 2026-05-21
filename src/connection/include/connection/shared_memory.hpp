@@ -6,7 +6,6 @@
 #include <target/target_termination.hpp>
 #include <utility/assumptions.hpp>
 #include <utility/endian.hpp>
-#include <iostream>
 
 namespace connection {
 
@@ -21,6 +20,21 @@ class shared_memory {
     natural_64_bit* saved = nullptr;
 
    public:
+    struct metadata_header {
+        uint32_t cond_br_count;
+        uint32_t goal_count;
+        instrumentation::target_termination termination;
+        uint64_t header_checksum;
+        uint64_t data_checksum;
+    };
+
+    static uint64_t compute_header_checksum(const metadata_header& header)
+    {
+        return (uint64_t)header.cond_br_count
+             ^ ((uint64_t)header.goal_count << 32)
+             ^ (uint64_t)(uint8_t)header.termination;
+    }
+
     size_t get_size() const;
     void set_size(size_t bytes);
     void clear();
@@ -38,6 +52,10 @@ class shared_memory {
 
     bool exhausted() const;
     natural_8_bit* get_memory();
+
+    metadata_header* header() const;
+    natural_8_bit* coverage_ptr() const;
+    natural_64_bit* saved_cursor() const { return saved; }
 
     std::optional<instrumentation::target_termination> get_termination() const;
 
