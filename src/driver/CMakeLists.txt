@@ -8,20 +8,27 @@ add_executable(${THIS_TARGET_NAME}
     src/program_options.cpp
 
     src/main.cpp
-    src/run.cpp
 
     include/driver/test_parser.hpp
     src/test_parser.cpp
 
-        include/driver/run_analyzer.hpp
+    include/driver/run_analyzer.hpp
     src/run_analyzer.cpp
+
+    include/driver/wave_scheduler.hpp
+    src/wave_scheduler.cpp
+
+    include/driver/result_writer.hpp
+    src/result_writer.cpp
+
+    include/driver/test_runner.hpp
+    src/test_runner.cpp
 )
 
 target_link_libraries(${THIS_TARGET_NAME}
     target
     connection
     iomodels
-    target
     utility
     ${Boost_LIBRARIES}
     )

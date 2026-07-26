@@ -61,7 +61,7 @@ public:
         br_instr_count = 0;
     }
 
-    double get_result() override {
+    double get_result() const override {
         uint64_t conditions_covered = 0;
         for (auto &[id, cc]: coverage) {
             conditions_covered += cc == instrumentation::BOTH ? 2 : 1;
@@ -80,9 +80,10 @@ public:
         return conditions_covered / static_cast<long double>(br_instr_count * 2);
     }
 
-    TestType get_type() const override {
-        return BRANCH_COVERAGE;
+    coverage_map get_coverage_map() const override {
+        return coverage;
     }
+
 };
 
 
@@ -128,7 +129,7 @@ public:
         goal_count = 0;
     }
 
-    double get_result() override {
+    double get_result() const override {
         uint32_t goals_hit = std::accumulate(coverage.begin(), coverage.end(), 0);
 
         std::cout << "Total: " << goal_count << std::endl;
@@ -139,9 +140,10 @@ public:
         return (double) goals_hit / goal_count;
     }
 
-    TestType get_type() const override {
-        return BRANCH_COVERAGE;
+    coverage_map get_coverage_map() const override {
+        return {};
     }
+
 };
 
 
@@ -161,13 +163,14 @@ public:
         goal_reached = false;
     }
 
-    double get_result() override {
+    double get_result() const override {
         return goal_reached;
     }
 
-    TestType get_type() const override {
-        return ERROR_CALL;
+    coverage_map get_coverage_map() const override {
+        return {};
     }
+
 };
 
 std::unique_ptr<IRunAnalyzer> create_run_analyzer(TestType test_type) {
