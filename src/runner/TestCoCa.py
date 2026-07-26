@@ -67,51 +67,6 @@ def transform_goals(input_file):
         return False
 
 
-def process_llvm_ir_goals(file):
-    call_pattern = re.compile(r'(\s*.*call.*@__testcoca_process_goal\(i32 noundef\s*)(\d+)(\s*\).*)')
-    count_pattern = re.compile(r'(\s*@__testcoca_goal_count\s*=\s*dso_local\s*constant\s*i32\s*)(\d+)(\s*,\s*align\s*4\s*)')
-
-    try:
-        with open(file, 'r') as f:
-            content = f.readlines()
-
-        new_content = []
-        current_id = 0
-
-        # Single pass: replace call IDs and collect updated lines
-        for line in content:
-            call_match = call_pattern.match(line)
-            if call_match:
-                prefix, old_id, suffix = call_match.groups()
-                # Preserve the exact whitespace and structure, only change the number
-                new_line = f"{prefix}{current_id}{suffix}"
-                new_content.append(new_line)
-                current_id += 1
-            else:
-                new_content.append(line)
-
-        # Now current_id holds the total number of calls
-        total_calls = current_id
-        print(f"Found {total_calls} calls to __testcoca_process_goal")
-
-        # Update the goal_count constant in the final content
-        for i, line in enumerate(new_content):
-            count_match = count_pattern.match(line)
-            if count_match:
-                prefix, old_count, suffix = count_match.groups()
-                new_content[i] = f"{prefix}{total_calls}{suffix}"
-                break  # Assuming there's only one occurrence
-
-        with open(file, 'w') as f:
-            f.writelines(new_content)
-
-        return True
-
-    except Exception as e:
-        print(f"Error processing {file}: {str(e)}")
-        return False
-
-
 def instrument(config):
     cmd = ["clang"] + (["-m32"] if config.use_m32 else []) + [
         "-O0", "-S", "-emit-llvm",
@@ -166,8 +121,6 @@ def instrument_testcomp(config):
     if not execute_command(compile_cmd):
         print(f"Failed to compile instrumented C code to LLVM: {inst_c_file}")
         return False
-
-    #process_llvm_ir_goals(config.ll_file)
 
     cmd = [os.path.join(config.self_dir, "tools", "@INSTRUMENTER_FILE@")] + [
         "--input", config.ll_file, "--output", config.instrumented_ll, "--inst_goals"
