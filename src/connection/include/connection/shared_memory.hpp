@@ -2,6 +2,7 @@
 
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/shared_memory_object.hpp>
+#include <cstdint>
 #include <optional>
 #include <target/target_termination.hpp>
 #include <utility/assumptions.hpp>
@@ -23,17 +24,22 @@ class shared_memory {
     struct metadata_header {
         uint32_t cond_br_count;
         uint32_t goal_count;
-        instrumentation::target_termination termination;
         uint64_t header_checksum;
         uint64_t data_checksum;
+        instrumentation::target_termination termination;
+        uint8_t _pad[7];
+
+        void set_header_checksum()
+        {
+            header_checksum = (uint64_t)cond_br_count ^ ((uint64_t)goal_count) << 32;
+        }
+        
+        bool verify_header_checksum()
+        {
+            return header_checksum == ((uint64_t)cond_br_count ^ ((uint64_t)goal_count) << 32);
+        }
     };
 
-    static uint64_t compute_header_checksum(const metadata_header& header)
-    {
-        return (uint64_t)header.cond_br_count
-             ^ ((uint64_t)header.goal_count << 32)
-             ^ (uint64_t)(uint8_t)header.termination;
-    }
 
     size_t get_size() const;
     void set_size(size_t bytes);
@@ -75,8 +81,6 @@ class shared_memory {
         return *this;
     }
 
-    shared_memory& operator<<(const std::string& src);
-
     template <typename T,
               typename std::enable_if<std::is_trivially_copyable<T>::value,
                                       int>::type = 0>
@@ -85,8 +89,6 @@ class shared_memory {
         deliver_bytes(&dest, sizeof(T));
         return *this;
     }
-
-    shared_memory& operator>>(std::string& dest);
 };
 
 struct shared_memory_remover {

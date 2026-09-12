@@ -1,3 +1,5 @@
+#include "connection/shared_memory.hpp"
+#include <cassert>
 #include <sys/prctl.h>
 #include <iostream>
 #include <target/target.hpp>
@@ -31,19 +33,15 @@ int main(int argc, char* argv[])
 
     target->shared_memory.clear();
 
-    auto* header = target->shared_memory.header();
+    auto* header = target->shared_memory.header(); 
+
     header->cond_br_count = &__testcoca_cond_br_count != nullptr ? __testcoca_cond_br_count : (uint32_t) 0;
     header->goal_count = &__testcoca_goal_count != nullptr ? __testcoca_goal_count : (uint32_t) 0;
-    header->termination = target_termination::normal;
+    header->set_header_checksum();
 
-    header->header_checksum = connection::shared_memory::compute_header_checksum(*header);
-    header->data_checksum = 0;
-
-    *target->shared_memory.saved_cursor() = sizeof(connection::shared_memory::metadata_header);
+    *target->shared_memory.saved_cursor() = sizeof(*header);
 
     __testcoca_original_main();
-
-    target->shared_memory.set_termination(target_termination::normal);
 
     return 0;
 }

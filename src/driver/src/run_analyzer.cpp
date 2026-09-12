@@ -12,16 +12,15 @@ class BranchCoverageAnalyzer : public IRunAnalyzer {
 
 public:
     void add_execution(connection::shared_memory &src) override {
+        if (!src.header()->verify_header_checksum()) {
+            std::cout << "WARNING: header checksum failed, discarding execution" << std::endl;
+            return;
+        }
+
         if (br_instr_count == 0) {
             br_instr_count = src.get_cond_br_count();
         } else if (br_instr_count != src.get_cond_br_count()) {
             std::cout << "WARNING: number of total reported br instructions differs between test runs" << std::endl;
-        }
-
-        checksum_t expected = connection::shared_memory::compute_header_checksum(*src.header());
-        if (expected != src.header()->header_checksum) {
-            std::cout << "WARNING: header checksum failed, discarding execution" << std::endl;
-            return;
         }
 
         auto *cov = reinterpret_cast<instrumentation::br_instr_coverage_info *>(src.coverage_ptr());
@@ -94,17 +93,16 @@ class TestCompCoverageAnalyzer : public IRunAnalyzer {
 
 public:
     void add_execution(connection::shared_memory &src) override {
+        if (!src.header()->verify_header_checksum()) {
+            std::cout << "WARNING: header checksum failed, discarding execution" << std::endl;
+            return;
+        }
+
         if (goal_count == 0) {
             goal_count = src.get_goal_count();
             coverage.resize(goal_count);
         } else if (goal_count != src.get_goal_count()) {
             std::cout << "WARNING: number of total reported goals differs between test runs" << std::endl;
-        }
-
-        checksum_t expected = connection::shared_memory::compute_header_checksum(*src.header());
-        if (expected != src.header()->header_checksum) {
-            std::cout << "WARNING: header checksum failed, discarding execution" << std::endl;
-            return;
         }
 
         auto *cov = src.coverage_ptr();

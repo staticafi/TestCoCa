@@ -69,22 +69,6 @@ void shared_memory::deliver_bytes(void* dest, size_t n)
     cursor += (uint32_t)n;
 }
 
-shared_memory& shared_memory::operator<<(const std::string& src)
-{
-    *this << (uint32_t)src.size();
-    accept_bytes(src.data(), (uint32_t)src.size());
-    return *this;
-}
-
-shared_memory& shared_memory::operator>>(std::string& dest)
-{
-    uint32_t size;
-    *this >> size;
-    dest.resize(size);
-    deliver_bytes(dest.data(), (size));
-    return *this;
-}
-
 shared_memory::metadata_header* shared_memory::header() const
 {
     return reinterpret_cast<metadata_header*>(memory);
@@ -122,7 +106,6 @@ uint64_t* shared_memory::checksum() const
 void shared_memory::set_termination(target_termination termination)
 {
     header()->termination = termination;
-    header()->header_checksum = compute_header_checksum(*header());
 }
 
 bool shared_memory::exhausted() const
