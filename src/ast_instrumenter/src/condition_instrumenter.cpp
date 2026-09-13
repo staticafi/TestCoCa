@@ -28,33 +28,83 @@ class ConditionVisitor : public clang::RecursiveASTVisitor<ConditionVisitor> {
     {
     }
 
-    bool VisitIfStmt(clang::IfStmt* stmt)
+    bool TraverseIfStmt(clang::IfStmt* stmt)
     {
+        bool value = false;
+        if (constant_condition_value(stmt->getCond(), value)) {
+            if (value) {
+                return TraverseStmt(stmt->getThen());
+            }
+            return stmt->getElse() ? TraverseStmt(stmt->getElse()) : true;
+        }
         wrap_condition(stmt->getCond());
+        TraverseStmt(stmt->getCond());
+        TraverseStmt(stmt->getThen());
+        if (stmt->getElse()) {
+            TraverseStmt(stmt->getElse());
+        }
         return true;
     }
 
-    bool VisitWhileStmt(clang::WhileStmt* stmt)
+    bool TraverseWhileStmt(clang::WhileStmt* stmt)
     {
-        wrap_condition(stmt->getCond());
+        bool value = false;
+        bool is_constant = constant_condition_value(stmt->getCond(), value);
+        if (!is_constant) {
+            wrap_condition(stmt->getCond());
+            TraverseStmt(stmt->getCond());
+        } else if (!value) {
+            return true;
+        }
+        return TraverseStmt(stmt->getBody());
+    }
+
+    bool TraverseForStmt(clang::ForStmt* stmt)
+    {
+        if (stmt->getInit()) {
+            TraverseStmt(stmt->getInit());
+        }
+        clang::Expr* condition = stmt->getCond();
+        bool value = false;
+        bool is_constant = constant_condition_value(condition, value);
+        if (condition != nullptr && !is_constant) {
+            wrap_condition(condition);
+            TraverseStmt(condition);
+        }
+        if (is_constant && !value) {
+            return true;
+        }
+        if (stmt->getBody()) {
+            TraverseStmt(stmt->getBody());
+        }
+        if (stmt->getInc()) {
+            TraverseStmt(stmt->getInc());
+        }
         return true;
     }
 
-    bool VisitForStmt(clang::ForStmt* stmt)
+    bool TraverseDoStmt(clang::DoStmt* stmt)
     {
-        wrap_condition(stmt->getCond());
+        TraverseStmt(stmt->getBody());
+        bool value = false;
+        if (!constant_condition_value(stmt->getCond(), value)) {
+            wrap_condition(stmt->getCond());
+            TraverseStmt(stmt->getCond());
+        }
         return true;
     }
 
-    bool VisitDoStmt(clang::DoStmt* stmt)
+    bool TraverseConditionalOperator(clang::ConditionalOperator* op)
     {
-        wrap_condition(stmt->getCond());
-        return true;
-    }
-
-    bool VisitConditionalOperator(clang::ConditionalOperator* op)
-    {
+        bool value = false;
+        if (constant_condition_value(op->getCond(), value)) {
+            return value ? TraverseStmt(op->getTrueExpr())
+                         : TraverseStmt(op->getFalseExpr());
+        }
         wrap_condition(op->getCond());
+        TraverseStmt(op->getCond());
+        TraverseStmt(op->getTrueExpr());
+        TraverseStmt(op->getFalseExpr());
         return true;
     }
 
@@ -89,6 +139,12 @@ class ConditionVisitor : public clang::RecursiveASTVisitor<ConditionVisitor> {
     {
         return clang::Lexer::getLocForEndOfToken(
             location, 0, source_manager_, context_.getLangOpts());
+    }
+
+    bool constant_condition_value(clang::Expr* condition, bool& value) const
+    {
+        return condition != nullptr && !condition->HasSideEffects(context_) &&
+               condition->EvaluateAsBooleanCondition(value, context_);
     }
 
     void wrap_condition(clang::Expr* condition)
