@@ -1,6 +1,7 @@
 include_directories(
     "${PROJECT_SOURCE_DIR}/src/target/include"
-    "${PROJECT_SOURCE_DIR}/src/instrumenter/include"
+    "${PROJECT_SOURCE_DIR}/src/ir_instrumenter/include"
+    "${PROJECT_SOURCE_DIR}/src/ast_instrumenter/include"
     "${PROJECT_SOURCE_DIR}/src/connection/include"
     "${PROJECT_SOURCE_DIR}/src/iomodels/include"
     "${PROJECT_SOURCE_DIR}/src/utility/include"
@@ -20,8 +21,11 @@ add_subdirectory(./target)
 
 
 if(BUILD_LIBS_32_BIT STREQUAL "No")
-    message("instrumenter")
-    add_subdirectory(./instrumenter)
+    message("ir_instrumenter")
+    add_subdirectory(./ir_instrumenter)
+
+    message("ast_instrumenter")
+    add_subdirectory(./ast_instrumenter)
 
     message("driver")
     add_subdirectory(./driver)

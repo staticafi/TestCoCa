@@ -1,7 +1,7 @@
 #include <iostream>
 #include <llvm/IR/InstIterator.h>
 
-#include <instrumenter/llvm_instrumenter.hpp>
+#include <ir_instrumenter/llvm_instrumenter.hpp>
 #include <llvm/Transforms/Utils/BasicBlockUtils.h>
 #include <utility/timeprof.hpp>
 

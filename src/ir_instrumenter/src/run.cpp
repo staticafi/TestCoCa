@@ -14,9 +14,9 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <instrumenter/llvm_instrumenter.hpp>
+#include <ir_instrumenter/llvm_instrumenter.hpp>
 #include <memory>
-#include <instrumenter/program_options.hpp>
+#include <ir_instrumenter/program_options.hpp>
 #include <utility/config.hpp>
 #include <utility/timeprof.hpp>
 

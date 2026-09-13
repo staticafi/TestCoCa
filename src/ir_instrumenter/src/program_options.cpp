@@ -1,5 +1,5 @@
-#include <instrumenter/program_options.hpp>
-#include <instrumenter/program_info.hpp>
+#include <ir_instrumenter/program_options.hpp>
+#include <ir_instrumenter/program_info.hpp>
 #include <utility/assumptions.hpp>
 
 program_options::program_options(int argc, char* argv[])

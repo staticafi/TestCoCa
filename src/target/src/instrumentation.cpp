@@ -21,4 +21,10 @@ void __testcoca_process_goal(uint32_t const id)
     target->process_goal(id);
 }
 
+bool __testcoca_cond(uint32_t const id, bool const cond)
+{
+    target->process_goal(cond ? id : id + 1);
+    return cond;
+}
+
 }

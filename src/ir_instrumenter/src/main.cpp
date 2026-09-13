@@ -1,5 +1,5 @@
-#include <instrumenter/program_info.hpp>
-#include <instrumenter/program_options.hpp>
+#include <ir_instrumenter/program_info.hpp>
+#include <ir_instrumenter/program_options.hpp>
 #include <utility/config.hpp>
 #include <utility/timeprof.hpp>
 #include <fstream>

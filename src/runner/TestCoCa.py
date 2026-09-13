@@ -15,6 +15,7 @@ class Config:
         self.output_dir = os.getcwd()
         self.test_suite = None
         self.testcomp = False
+        self.decision_coverage = False
         self.format = False
         self.use_m32 = False
         self.silent = False
@@ -79,7 +80,7 @@ def instrument(config):
         print(f"Compilation failed: {config.input_file}")
         return False
 
-    cmd = [os.path.join(config.self_dir, "tools", "@INSTRUMENTER_FILE@")] + config.goal_options + [
+    cmd = [os.path.join(config.self_dir, "tools", "@IR_INSTRUMENTER_FILE@")] + config.goal_options + [
         "--input", config.ll_file, "--output", config.instrumented_ll
     ]
 
@@ -122,9 +123,46 @@ def instrument_testcomp(config):
         print(f"Failed to compile instrumented C code to LLVM: {inst_c_file}")
         return False
 
-    cmd = [os.path.join(config.self_dir, "tools", "@INSTRUMENTER_FILE@")] + [
+    cmd = [os.path.join(config.self_dir, "tools", "@IR_INSTRUMENTER_FILE@")] + [
         "--input", config.ll_file, "--output", config.instrumented_ll, "--inst_goals"
     ]
+
+    if not config.silent: print("Instrumenting LLVM...")
+
+    if not execute_command(cmd):
+        print(f"Instrumentation failed: {config.ll_file}")
+        return False
+
+    return True
+
+
+def instrument_decision_coverage(config):
+    base = os.path.splitext(os.path.basename(config.input_file))[0]
+    rewritten_c = os.path.join(config.output_dir, base + "_decisions.c")
+
+    cmd = [os.path.join(config.self_dir, "tools", "@AST_INSTRUMENTER_FILE@"),
+           config.input_file, rewritten_c]
+
+    if not config.silent: print("Instrumenting decisions (AST)...")
+
+    if not execute_command(cmd):
+        print(f"AST instrumentation failed: {config.input_file}")
+        return False
+
+    compile_cmd = ["clang"] + (["-m32"] if config.use_m32 else []) + [
+        "-O0", "-S", "-emit-llvm",
+        "-Wno-everything", "-fbracket-depth=1024",
+        rewritten_c, "-o", config.ll_file
+    ]
+
+    if not config.silent: print("Compiling C to LLVM...")
+
+    if not execute_command(compile_cmd):
+        print(f"Failed to compile instrumented C code to LLVM: {rewritten_c}")
+        return False
+
+    cmd = [os.path.join(config.self_dir, "tools", "@IR_INSTRUMENTER_FILE@"),
+           "--input", config.ll_file, "--output", config.instrumented_ll]
 
     if not config.silent: print("Instrumenting LLVM...")
 
@@ -156,11 +194,14 @@ def build(config):
         subprocess.run(clang_tidy_cmd, capture_output=True, text=True)
         config.input_file = formatted_path
 
-    if not config.testcomp:
-        if not instrument(config):
+    if config.decision_coverage:
+        if not instrument_decision_coverage(config):
+            return False
+    elif config.testcomp:
+        if not instrument_testcomp(config):
             return False
     else:
-        if not instrument_testcomp(config):
+        if not instrument(config):
             return False
 
     target_libs = [
@@ -199,7 +240,7 @@ def run_tests(config):
                "--test_dir", config.test_suite,
                "--output_dir", config.output_dir,
            ]
-           + (["--testcomp"] if config.testcomp else [])
+           + (["--testcomp"] if (config.testcomp or config.decision_coverage) else [])
            + config.test_options + config.options)
 
     if not config.silent: print("Running tests...")
@@ -262,6 +303,7 @@ def print_help(self_dir):
     print("--output_dir <PATH>    Directory for results (default: current dir)")
     print("--goal <PATH>          .prp file for coverage goal (default: branch)")
     print("--testcomp             Use TestCov's label-adder to calculate branch coverage")
+    print("--decision-coverage    Instrument decisions at the AST level (break/switch aware)")
     print("--format               Use clang-tidy to format the source file")
     print("--skip_building        Skip building step")
     print("--skip_testing         Skip testing step")
@@ -305,6 +347,8 @@ def main():
             config.skip_testing = True
         elif arg == "--testcomp":
             config.testcomp = True
+        elif arg == "--decision-coverage":
+            config.decision_coverage = True
         elif arg == "--format":
             config.format = True
         elif arg == "--m32":
@@ -315,6 +359,10 @@ def main():
 
     if not config.input_file or not os.path.isfile(config.input_file):
         print("Missing or invalid input file")
+        return 1
+
+    if config.testcomp and config.decision_coverage:
+        print("--testcomp and --decision-coverage are mutually exclusive")
         return 1
 
     base = os.path.splitext(os.path.basename(config.input_file))[0]
@@ -328,8 +376,9 @@ def main():
         return 1
 
     if config.goal_options[0] == "--inst_err":
-        print("WARNING: Ignoring --testcomp flag, not applicable to cover-error category")
+        print("WARNING: Ignoring coverage-mode flags, not applicable to cover-error category")
         config.testcomp = False
+        config.decision_coverage = False
 
     os.makedirs(config.output_dir, exist_ok=True)
 

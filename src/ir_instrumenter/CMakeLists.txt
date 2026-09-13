@@ -1,13 +1,13 @@
-set(THIS_TARGET_NAME instrumenter)
+set(THIS_TARGET_NAME ir_instrumenter)
 
 add_executable(${THIS_TARGET_NAME} 
-    include/instrumenter/program_info.hpp
+    include/ir_instrumenter/program_info.hpp
     src/program_info.cpp
 
-    include/instrumenter/program_options.hpp
+    include/ir_instrumenter/program_options.hpp
     src/program_options.cpp
 
-    include/instrumenter/llvm_instrumenter.hpp
+    include/ir_instrumenter/llvm_instrumenter.hpp
     src/llvm_instrumenter.cpp
 
     src/main.cpp

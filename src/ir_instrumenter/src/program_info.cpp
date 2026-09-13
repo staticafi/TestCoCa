@@ -1,4 +1,4 @@
-#include "instrumenter/program_info.hpp"
+#include "ir_instrumenter/program_info.hpp"
 
 std::string  get_program_name()
 {
