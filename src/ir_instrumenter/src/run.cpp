@@ -14,11 +14,14 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <ir_instrumenter/instrumenter_factory.hpp>
 #include <ir_instrumenter/llvm_instrumenter.hpp>
 #include <memory>
 #include <ir_instrumenter/program_options.hpp>
 #include <utility/config.hpp>
 #include <utility/timeprof.hpp>
+
+using namespace ir_instrumenter;
 
 void run(int argc, char* argv[])
 {
@@ -44,17 +47,6 @@ void run(int argc, char* argv[])
     }
     if (!get_program_options()->has("output")) {
         std::cout << "No output file was specified." << std::endl;
-        return;
-    }
-
-    bool instBr = get_program_options()->has("inst_br");
-    bool instGoals = get_program_options()->has("inst_goals");
-    bool instErr = get_program_options()->has("inst_err");
-
-    std::string targetFunc;
-
-    if (instErr && (targetFunc = get_program_options()->value("inst_err")).empty()) {
-        std::cout << "InstErr option picked but no function specified" << std::endl;
         return;
     }
 
@@ -89,13 +81,14 @@ void run(int argc, char* argv[])
 
     passManager.run(*M);
 
-    llvm_instrumenter instrumenter;
-    instrumenter.doInitialization(M.get());
-    instrumenter.renameFunctions();
+    auto instrumenter = create_instrumenter(get_program_options());
+    if (!instrumenter) {
+        return;
+    }
 
-    if (instBr) instrumenter.instrument_br(*M);
-    if (instErr) instrumenter.instrument_err(*M, targetFunc);
-    if (instGoals) instrumenter.instrument_goals(*M);
+    instrumenter->doInitialization(M.get());
+    instrumenter->renameFunctions();
+    instrumenter->instrument(*M);
 
     {
         TMPROF_BLOCK();

@@ -10,6 +10,20 @@ add_executable(${THIS_TARGET_NAME}
     include/ir_instrumenter/llvm_instrumenter.hpp
     src/llvm_instrumenter.cpp
 
+    include/ir_instrumenter/branch_instrumenter.hpp
+    src/branch_instrumenter.cpp
+
+    include/ir_instrumenter/goal_instrumenter.hpp
+    src/goal_instrumenter.cpp
+
+    include/ir_instrumenter/error_instrumenter.hpp
+    src/error_instrumenter.cpp
+
+    include/ir_instrumenter/rename_only_instrumenter.hpp
+
+    include/ir_instrumenter/instrumenter_factory.hpp
+    src/instrumenter_factory.cpp
+
     src/main.cpp
 
     src/run.cpp
