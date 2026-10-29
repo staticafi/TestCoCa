@@ -44,6 +44,8 @@ class shared_memory {
     size_t get_size() const;
     void set_size(size_t bytes);
     void clear();
+    void reset_for_test();
+    void clear_coverage(size_t bytes);
     void print(size_t size = 0);
 
     void open_or_create();

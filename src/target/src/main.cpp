@@ -1,4 +1,5 @@
 #include "connection/shared_memory.hpp"
+#include <algorithm>
 #include <cassert>
 #include <sys/prctl.h>
 #include <iostream>
@@ -31,14 +32,19 @@ int main(int argc, char* argv[])
     target->load_config();
     target->load_stdin();
 
-    target->shared_memory.clear();
-
-    auto* header = target->shared_memory.header(); 
+    auto* header = target->shared_memory.header();
 
     header->cond_br_count = &__testcoca_cond_br_count != nullptr ? __testcoca_cond_br_count : (uint32_t) 0;
     header->goal_count = &__testcoca_goal_count != nullptr ? __testcoca_goal_count : (uint32_t) 0;
+    header->data_checksum = 0;
+    header->termination = target_termination::normal;
     header->set_header_checksum();
 
+    const std::size_t coverage_bytes = std::max<std::size_t>(
+        (std::size_t)header->cond_br_count * sizeof(br_instr_coverage_info),
+        (std::size_t)header->goal_count);
+
+    target->shared_memory.clear_coverage(coverage_bytes);
     *target->shared_memory.saved_cursor() = sizeof(*header);
 
     __testcoca_original_main(argc, argv);

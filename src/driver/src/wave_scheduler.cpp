@@ -1,38 +1,43 @@
 #include <driver/wave_scheduler.hpp>
 
-std::vector<size_t> calculate_waves(size_t limit, size_t test_count)
+#include <algorithm>
+#include <limits>
+
+namespace {
+
+std::size_t saturating_multiply(std::size_t lhs, std::size_t rhs)
 {
-    if (test_count == 0) return {};
+    if (lhs != 0 && rhs > std::numeric_limits<std::size_t>::max() / lhs)
+        return std::numeric_limits<std::size_t>::max();
+    return lhs * rhs;
+}
 
-    if (test_count == 1) return {limit};
+}  // namespace
 
-    if (limit / test_count < wave_min_duration) {
-        return {wave_min_duration};
-    }
+std::optional<wave_plan> next_wave_plan(const time_budget& budget,
+                                        std::size_t wave_index,
+                                        std::size_t active_tests)
+{
+    if (active_tests == 0 || wave_index >= wave_safety_max)
+        return std::nullopt;
 
-    std::vector<size_t> waves;
-    const size_t r = wave_duration_increase_ratio;
-    size_t remaining = limit;
-    size_t current = wave_min_duration;
+    const std::size_t usable = budget.usable_ms();
+    if (usable < min_useful_slice_ms)
+        return std::nullopt;
 
-    while (waves.size() < wave_max_count) {
-        const size_t wave_time = current;
-        const size_t total_consumed = wave_time * test_count;
-
-        if (total_consumed > remaining) {
+    std::size_t ladder_slice = wave_min_duration;
+    for (std::size_t i = 0; i < wave_index; ++i) {
+        ladder_slice = saturating_multiply(ladder_slice,
+                                           wave_duration_increase_ratio);
+        if (ladder_slice >= usable)
             break;
-        }
-
-        waves.push_back(wave_time);
-        remaining -= total_consumed;
-        current *= r;
     }
 
-    if (!waves.empty() && remaining > 0) {
-        waves.back() += remaining / test_count;
-    }
+    const std::size_t fair_share = usable / active_tests;
+    const std::size_t timeout = std::min(ladder_slice, fair_share);
 
-    if (waves.empty()) waves.push_back(wave_min_duration);
+    if (timeout < min_useful_slice_ms)
+        return std::nullopt;
 
-    return waves;
+    return wave_plan{timeout, wave_index};
 }

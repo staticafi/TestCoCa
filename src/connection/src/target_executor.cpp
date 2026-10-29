@@ -1,5 +1,6 @@
 #include <boost/process.hpp>
 #include <connection/target_executor.hpp>
+#include <chrono>
 #include <iostream>
 
 namespace bp = boost::process;
@@ -30,6 +31,7 @@ void target_executor::init_shared_memory(std::size_t size)
     get_shared_memory().open_or_create();
     get_shared_memory().set_size(size);
     get_shared_memory().map_region();
+    get_shared_memory().clear();
 }
 
 void target_executor::set_timeout(std::size_t const timeout_ms_)
@@ -37,28 +39,58 @@ void target_executor::set_timeout(std::size_t const timeout_ms_)
     timeout_ms = timeout_ms_;
 }
 
-
-void target_executor::execute_target(const std::vector<std::string>& args)
+execution_result target_executor::execute_target(const std::vector<std::string>& args)
 {
     using namespace std::chrono_literals;
-    bp::child target = bp::child(target_invocation, bp::args(args),
-                                 bp::std_out > stdout, bp::std_err > stderr);
-    if (!wait_for_wrapper(target, std::chrono::milliseconds(timeout_ms))) {
-        target.terminate();
 
-        std::cout << "TIME OUT: " << timeout_ms <<  std::endl;
+    execution_result result;
+    const auto wall_start = std::chrono::steady_clock::now();
 
-        get_shared_memory().set_termination(target_termination::timeout);
-    }
+    try {
+        bp::group group;
+        bp::child target = bp::child(target_invocation, bp::args(args),
+                                     bp::std_out > stdout, bp::std_err > stderr,
+                                     group);
+        result.started = true;
 
-    if (!get_shared_memory().get_termination()) {
-        if (target.exit_code() == 0) {
+        if (!wait_for_wrapper(target, std::chrono::milliseconds(timeout_ms))) {
+            result.timed_out = true;
+            group.terminate();
+            target.wait_for(std::chrono::milliseconds(100));
+            std::cout << "TIME OUT: " << timeout_ms << std::endl;
+            get_shared_memory().set_termination(target_termination::timeout);
+        }
+
+        const auto termination = get_shared_memory().get_termination();
+
+        if (result.timed_out) {
+            result.termination = target_termination::timeout;
+        } else if (termination && *termination != target_termination::normal) {
+            result.termination = *termination;
+        } else if (target.exit_code() == 0) {
             get_shared_memory().set_termination(target_termination::normal);
-        }
-        else {
+            result.termination = target_termination::normal;
+        } else {
             get_shared_memory().set_termination(target_termination::crash);
+            result.termination = target_termination::crash;
         }
+
+        result.header_valid =
+            get_shared_memory().header()->verify_header_checksum();
+
+        group.detach();
+    } catch (const std::exception& e) {
+        std::cout << "Failed to execute target: " << e.what() << std::endl;
+        result.started = false;
+        result.header_valid = false;
+        result.termination = target_termination::crash;
     }
+
+    result.wall_ms = static_cast<std::size_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now() - wall_start).count());
+
+    return result;
 }
 
 }  // namespace connection

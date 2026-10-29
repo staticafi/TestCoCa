@@ -168,6 +168,8 @@ class Benchmark:
                 "--input_file", self.src_file,
                 "--output_dir", output_dir,
             ] + (["--m32"] if "m32" in self.config["args"] and self.config["args"]["m32"] is True else []) +
+            (["--max_exec_milliseconds", str(self.config["args"]["max_exec_milliseconds"])]) +
+            (["--max_exec_megabytes", str(self.config["args"]["max_exec_megabytes"])]) +
             (["--testcomp"] if "testcomp" in self.config["args"] and self.config["args"]["testcomp"] is True else []) +
             (["--decision-coverage"] if "decision-coverage" in self.config["args"] and self.config["args"]["decision-coverage"] is True else []) +
             (["--format"] if "format" in self.config["args"] and self.config["args"]["format"] is True else []) +
@@ -197,6 +199,8 @@ class Benchmark:
                 "--test_suite", self.test_suite,
                 "--output_dir", output_dir,
             ] +
+            (["--max_exec_milliseconds", str(self.config["args"]["max_exec_milliseconds"])]) +
+            (["--max_exec_megabytes", str(self.config["args"]["max_exec_megabytes"])]) +
             (["--testcomp"] if "testcomp" in self.config["args"] and self.config["args"]["testcomp"] is True else []) +
             (["--decision-coverage"] if "decision-coverage" in self.config["args"] and self.config["args"]["decision-coverage"] is True else []) +
             ((["--goal"] + [self.config["args"]["goal"]]) if "goal" in self.config["args"] else []),

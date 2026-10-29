@@ -2,6 +2,8 @@
 #include <driver/wave_scheduler.hpp>
 #include <iomodels/iomanager.hpp>
 #include <boost/lexical_cast.hpp>
+#include <algorithm>
+#include <chrono>
 #include <filesystem>
 #include <iostream>
 
@@ -12,6 +14,9 @@ test_runner::test_runner(program_options_ptr options)
 
 void test_runner::run()
 {
+    auto time_limit = boost::lexical_cast<size_t>(options_->value("max_exec_milliseconds"));
+    time_budget budget(time_limit);
+
     validate_options();
     prepare_output_directory();
     configure_io_limits();
@@ -30,14 +35,20 @@ void test_runner::run()
     max_exec_megabytes_ = boost::lexical_cast<size_t>(options_->value("max_exec_megabytes"));
     executor->init_shared_memory(1024 * 1024 * max_exec_megabytes_);
 
-    auto time_limit = boost::lexical_cast<size_t>(options_->value("max_exec_milliseconds"));
-    auto waves = calculate_waves(time_limit, tests.size());
-
-    // TODO take into account the overhead time
-    execute_waves(*executor, tests, *analyzer, waves);
+    auto summary = execute_waves(*executor, tests, *analyzer, budget);
 
     auto results = collect_results(*analyzer);
+    results.time_limit_reached = summary.time_limit_reached;
+    results.elapsed_ms = budget.elapsed_ms();
+    results.tests_executed = summary.executed;
+    results.tests_skipped = summary.skipped;
+    results.stop_reason = summary.reason == execution_stop_reason::completed
+        ? "completed"
+        : summary.reason == execution_stop_reason::time_budget_depleted
+            ? "time_budget_depleted"
+            : "budget_too_small";
     report_results(results, test_type);
+    report_time_budget(budget, summary);
 }
 
 void test_runner::validate_options() const
@@ -114,7 +125,7 @@ void test_runner::prepare_output_directory()
 void test_runner::configure_io_limits() const
 {
     iomodels::iomanager::instance().set_config(
-        {.max_exec_milliseconds = (natural_16_bit)std::max(
+        {.max_exec_milliseconds = (natural_32_bit)std::max(
              0,
              std::stoi(options_->value("max_exec_milliseconds"))),
          .max_exec_megabytes = (natural_16_bit)std::max(
@@ -137,35 +148,76 @@ TestDirParser::tests test_runner::load_test_suite() const
     return TestDirParser::parse_dir(options_->value("test_dir"));
 }
 
-void test_runner::execute_waves(connection::target_executor& executor,
-                                 TestDirParser::tests& tests,
-                                 IRunAnalyzer& analyzer,
-                                 const std::vector<size_t>& waves)
+test_runner::execution_summary test_runner::execute_waves(
+    connection::target_executor& executor,
+    TestDirParser::tests& tests,
+    IRunAnalyzer& analyzer,
+    const time_budget& budget)
 {
-    for (auto wave_timeout : waves) {
-        executor.set_timeout(wave_timeout);
-        std::cout << "Running test with timeout: " << wave_timeout << std::endl;
+    execution_summary summary;
+    std::size_t wave_index = 0;
+
+    while (!tests.empty() && wave_index < wave_safety_max) {
+        const auto plan = next_wave_plan(budget, wave_index, tests.size());
+
+        if (!plan) {
+            summary.time_limit_reached = true;
+            summary.reason = budget.usable_ms() < min_useful_slice_ms
+                ? execution_stop_reason::time_budget_depleted
+                : execution_stop_reason::budget_too_small;
+            break;
+        }
+
+        ++summary.waves;
+        std::cout << "Running wave " << plan->wave_index
+                  << " with timeout: " << plan->timeout_ms << " ms" << std::endl;
+
+        bool budget_depleted = false;
 
         for (auto it = tests.begin(); it != tests.end();) {
-            write_test_input(executor.get_shared_memory(), *it);
+            const std::size_t usable = budget.usable_ms();
 
-            executor.execute_target(it->command_line_args);
-
-            analyzer.add_execution(executor.get_shared_memory());
-
-            auto termination = executor.get_shared_memory().get_termination();
-
-            if (termination != instrumentation::target_termination::normal) {
-                std::cout << "Abnormal termination: " << (int)*termination << std::endl;
+            if (usable < min_useful_slice_ms) {
+                budget_depleted = true;
+                break;
             }
 
-            if (termination == instrumentation::target_termination::timeout) {
+            executor.set_timeout(std::min(plan->timeout_ms, usable));
+            write_test_input(executor.get_shared_memory(), *it);
+
+            const auto execution = executor.execute_target(it->command_line_args);
+
+            if (execution.started && execution.header_valid)
+                analyzer.add_execution(executor.get_shared_memory());
+
+            ++summary.executed;
+
+            if (execution.timed_out) {
+                ++summary.retried;
                 ++it;
             } else {
                 tests.erase(it++);
             }
         }
+
+        if (budget_depleted) {
+            summary.time_limit_reached = true;
+            summary.reason = execution_stop_reason::time_budget_depleted;
+            break;
+        }
+
+        ++wave_index;
     }
+
+    summary.skipped = tests.size();
+
+    if (!tests.empty()) {
+        summary.time_limit_reached = true;
+        if (summary.reason == execution_stop_reason::completed)
+            summary.reason = execution_stop_reason::time_budget_depleted;
+    }
+
+    return summary;
 }
 
 void test_runner::write_test_input(connection::shared_memory& shm,
@@ -174,7 +226,7 @@ void test_runner::write_test_input(connection::shared_memory& shm,
     const auto& input = test.input;
     uint64_t byte_count = input.byte_count();
 
-    shm.clear();
+    shm.reset_for_test();
     shm << (uint16_t)max_exec_megabytes_;
     shm << byte_count;
     shm << input.input_count();
@@ -202,4 +254,22 @@ void test_runner::report_results(const test_result& result, TestType test_type) 
 
     auto result_file = output_dir_ / "result.json";
     write_result_json(result_file, result);
+}
+
+void test_runner::report_time_budget(const time_budget& budget,
+                                     const execution_summary& summary) const
+{
+    const char* reason = "completed";
+    if (summary.reason == execution_stop_reason::time_budget_depleted)
+        reason = "time_budget_depleted";
+    else if (summary.reason == execution_stop_reason::budget_too_small)
+        reason = "budget_too_small";
+
+    std::cout << "Time budget: " << budget.total_ms() << " ms\n"
+              << "Elapsed: " << budget.elapsed_ms() << " ms\n"
+              << "Waves: " << summary.waves << "\n"
+              << "Executed: " << summary.executed
+              << ", retried: " << summary.retried
+              << ", skipped: " << summary.skipped << "\n"
+              << "Stop reason: " << reason << std::endl;
 }

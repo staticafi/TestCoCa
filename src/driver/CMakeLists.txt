@@ -18,6 +18,8 @@ add_executable(${THIS_TARGET_NAME}
     include/driver/wave_scheduler.hpp
     src/wave_scheduler.cpp
 
+    include/driver/time_budget.hpp
+
     include/driver/result_writer.hpp
     src/result_writer.cpp
 

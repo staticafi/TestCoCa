@@ -1,10 +1,21 @@
 #pragma once
 
-#include <vector>
+#include <driver/time_budget.hpp>
+
 #include <cstddef>
+#include <optional>
 
-constexpr size_t wave_min_duration = 100;
-constexpr size_t wave_max_count = 4;
-constexpr size_t wave_duration_increase_ratio = 5;
+constexpr std::size_t wave_min_duration = 100;
+constexpr std::size_t wave_duration_increase_ratio = 5;
+constexpr std::size_t min_useful_slice_ms = 5;
+constexpr std::size_t wave_safety_max = 64;
 
-std::vector<size_t> calculate_waves(size_t time_limit_ms, size_t test_count);
+struct wave_plan
+{
+    std::size_t timeout_ms;
+    std::size_t wave_index;
+};
+
+std::optional<wave_plan> next_wave_plan(const time_budget& budget,
+                                        std::size_t wave_index,
+                                        std::size_t active_tests);

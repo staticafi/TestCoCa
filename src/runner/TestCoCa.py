@@ -6,6 +6,12 @@ import os
 import time
 import shutil
 import zipfile
+import json
+import signal
+
+
+FINALISATION_RESERVE_SECONDS = 0.15
+DRIVER_GRACE_SECONDS = 0.5
 
 
 class Config:
@@ -27,15 +33,54 @@ class Config:
         self.ll_file = None
         self.instrumented_ll = None
         self.target_file = None
+        self.max_exec_milliseconds = 1000
+        self.deadline = None
+
+    def remaining_seconds(self, reserve=0.0):
+        if self.deadline is None:
+            return None
+        return self.deadline - time.monotonic() - reserve
+
+    def command_timeout(self):
+        return self.remaining_seconds(FINALISATION_RESERVE_SECONDS)
+
+
+def run_process(command, timeout=None, capture_output=False):
+    if timeout is not None and timeout <= 0:
+        print(f"Time limit reached before command: {' '.join(command)}")
+        return None, "", ""
+
+    try:
+        process = subprocess.Popen(
+            command,
+            start_new_session=True,
+            stdout=subprocess.PIPE if capture_output else None,
+            stderr=subprocess.PIPE if capture_output else None,
+            text=capture_output,
+        )
+    except Exception as e:
+        print(f"Command failed to start: {' '.join(command)} - {str(e)}")
+        return None, "", str(e)
+
+    try:
+        stdout, stderr = process.communicate(timeout=timeout)
+        return process.returncode, stdout, stderr
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            try:
+                process.kill()
+            except Exception:
+                pass
+        stdout, stderr = process.communicate()
+        print(f"Command timed out: {' '.join(command)}")
+        return None, stdout, stderr
 
 
 def execute_command(command, timeout=None):
-    try:
-        result = subprocess.run(command, timeout=timeout)
-        return result.returncode == 0
-    except Exception as e:
-        print(f"Command failed: {' '.join(command)} - {str(e)}")
-        return False
+    return_code, _, _ = run_process(command, timeout)
+    return return_code == 0
 
 
 def transform_goals(input_file):
@@ -76,7 +121,7 @@ def instrument(config):
     ]
 
     if not config.silent: print("Compiling C to LLVM...")
-    if not execute_command(cmd):
+    if not execute_command(cmd, config.command_timeout()):
         print(f"Compilation failed: {config.input_file}")
         return False
 
@@ -85,7 +130,7 @@ def instrument(config):
     ]
 
     if not config.silent: print("Instrumenting LLVM...")
-    if not execute_command(cmd):
+    if not execute_command(cmd, config.command_timeout()):
         print(f"Instrumentation failed: {config.ll_file}")
         return False
     return True
@@ -101,11 +146,14 @@ def instrument_testcomp(config):
 
     if not config.silent: print("Adding labels...")
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    return_code, stdout, _ = run_process(cmd, config.command_timeout(), capture_output=True)
+    if return_code != 0:
+        print(f"Adding labels failed: {config.input_file}")
+        return False
 
     inst_c_file = config.instrumented_ll.replace('.ll', '.c')
     with open(inst_c_file, 'w') as f:
-        f.write(result.stdout)
+        f.write(stdout or "")
 
     transform_goals(inst_c_file)
 
@@ -119,7 +167,7 @@ def instrument_testcomp(config):
 
     if not config.silent: print("Compiling C to LLVM...")
 
-    if not execute_command(compile_cmd):
+    if not execute_command(compile_cmd, config.command_timeout()):
         print(f"Failed to compile instrumented C code to LLVM: {inst_c_file}")
         return False
 
@@ -129,7 +177,7 @@ def instrument_testcomp(config):
 
     if not config.silent: print("Instrumenting LLVM...")
 
-    if not execute_command(cmd):
+    if not execute_command(cmd, config.command_timeout()):
         print(f"Instrumentation failed: {config.ll_file}")
         return False
 
@@ -145,7 +193,7 @@ def instrument_decision_coverage(config):
 
     if not config.silent: print("Instrumenting decisions (AST)...")
 
-    if not execute_command(cmd):
+    if not execute_command(cmd, config.command_timeout()):
         print(f"AST instrumentation failed: {config.input_file}")
         return False
 
@@ -157,7 +205,7 @@ def instrument_decision_coverage(config):
 
     if not config.silent: print("Compiling C to LLVM...")
 
-    if not execute_command(compile_cmd):
+    if not execute_command(compile_cmd, config.command_timeout()):
         print(f"Failed to compile instrumented C code to LLVM: {rewritten_c}")
         return False
 
@@ -166,7 +214,7 @@ def instrument_decision_coverage(config):
 
     if not config.silent: print("Instrumenting LLVM...")
 
-    if not execute_command(cmd):
+    if not execute_command(cmd, config.command_timeout()):
         print(f"Instrumentation failed: {config.ll_file}")
         return False
 
@@ -191,7 +239,7 @@ def build(config):
         if not config.silent:
             print("Running clang-tidy...")
 
-        subprocess.run(clang_tidy_cmd, capture_output=True, text=True)
+        run_process(clang_tidy_cmd, config.command_timeout(), capture_output=True)
         config.input_file = formatted_path
 
     if config.decision_coverage:
@@ -216,7 +264,7 @@ def build(config):
           ]
 
     if not config.silent: print("Linking executable...")
-    if not execute_command(cmd):
+    if not execute_command(cmd, config.command_timeout()):
         print(f"Linking failed: {config.input_file}")
         return False
 
@@ -224,7 +272,7 @@ def build(config):
     return True
 
 
-def run_tests(config):
+def run_tests(config, remaining_ms):
     if not os.path.exists(config.target_file):
         old_target = os.path.join(os.path.dirname(config.input_file), os.path.basename(config.target_file))
         if not os.path.exists(old_target):
@@ -239,12 +287,13 @@ def run_tests(config):
                "--path_to_target", target,
                "--test_dir", config.test_suite,
                "--output_dir", config.output_dir,
+               "--max_exec_milliseconds", str(remaining_ms),
            ]
            + (["--testcomp"] if (config.testcomp or config.decision_coverage) else [])
            + config.test_options + config.options)
 
     if not config.silent: print("Running tests...")
-    return execute_command(cmd)
+    return execute_command(cmd, remaining_ms / 1000.0 + DRIVER_GRACE_SECONDS)
 
 
 def parse_coverage_goal(goal_file):
@@ -294,6 +343,22 @@ def prepare_test_suite(test_suite, output_dir):
     return test_suite
 
 
+def write_fallback_result(output_dir, stop_reason="time_budget_depleted"):
+    os.makedirs(output_dir, exist_ok=True)
+    result_path = os.path.join(output_dir, "result.json")
+    with open(result_path, "w") as f:
+        json.dump({
+            "coverage": 0.0,
+            "coverage_map": {},
+            "time_limit_reached": True,
+            "elapsed_ms": 0,
+            "tests_executed": 0,
+            "tests_skipped": 0,
+            "stop_reason": stop_reason,
+        }, f)
+    return result_path
+
+
 def print_help(self_dir):
     print("TestCoCa Usage")
     print("==============")
@@ -302,6 +367,7 @@ def print_help(self_dir):
     print("--test_suite <PATH>    Directory containing tests")
     print("--output_dir <PATH>    Directory for results (default: current dir)")
     print("--goal <PATH>          .prp file for coverage goal (default: branch)")
+    print("--max_exec_milliseconds <MS>  Wall-clock time limit for the whole invocation")
     print("--testcomp             Use TestCov's label-adder to calculate branch coverage")
     print("--decision-coverage    Instrument decisions at the AST level (break/switch aware)")
     print("--format               Use clang-tidy to format the source file")
@@ -312,7 +378,7 @@ def print_help(self_dir):
 
 
 def main():
-    start_time = time.time()
+    start_time = time.monotonic()
     self_dir = os.path.dirname(os.path.abspath(__file__))
     config = Config(self_dir)
     goal_file = None
@@ -341,6 +407,13 @@ def main():
             config.output_dir = os.path.abspath(sys.argv[i + 1])
             os.makedirs(config.output_dir, exist_ok=True)
             i += 1
+        elif arg == "--max_exec_milliseconds" and i + 1 < len(sys.argv):
+            try:
+                config.max_exec_milliseconds = max(0, int(sys.argv[i + 1]))
+            except ValueError:
+                print(f"Invalid --max_exec_milliseconds value: {sys.argv[i + 1]}")
+                return 1
+            i += 1
         elif arg == "--skip_building":
             config.skip_building = True
         elif arg == "--skip_testing":
@@ -356,6 +429,8 @@ def main():
         else:
             config.options.append(arg)
         i += 1
+
+    config.deadline = start_time + config.max_exec_milliseconds / 1000.0
 
     if not config.input_file or not os.path.isfile(config.input_file):
         print("Missing or invalid input file")
@@ -394,18 +469,34 @@ def main():
             print("Missing or invalid test suite")
             return 1
 
+        if config.remaining_seconds(FINALISATION_RESERVE_SECONDS) <= 0:
+            print("Time limit reached before test-suite extraction")
+            write_fallback_result(config.output_dir)
+            return 0
+
         prepared_test_suite = prepare_test_suite(config.test_suite, config.output_dir)
         if not prepared_test_suite:
             return 1
         config.test_suite = prepared_test_suite
 
+        remaining_ms = int(max(
+            0, config.remaining_seconds(FINALISATION_RESERVE_SECONDS) * 1000))
+
+        if remaining_ms <= 0:
+            print("Time limit reached before testing")
+            write_fallback_result(config.output_dir)
+            return 0
+
         if not config.silent: print(f"Using test suite: {config.test_suite}")
-        if not run_tests(config):
+        if not run_tests(config, remaining_ms):
+            result_path = os.path.join(config.output_dir, "result.json")
+            if not os.path.exists(result_path):
+                write_fallback_result(config.output_dir, "driver_failed")
             print("Testing failed")
             return 1
 
     if not config.silent:
-        print(f"Completed successfully in {time.time() - start_time:.2f} seconds")
+        print(f"Completed successfully in {time.monotonic() - start_time:.2f} seconds")
     return 0
 
 

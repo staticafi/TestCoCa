@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iomanip>
 #include <connection/shared_memory.hpp>
 #include <iomodels/configuration.hpp>
@@ -33,6 +34,25 @@ void shared_memory::clear()
     memset(memory, 0, region.get_size());
     cursor = 0;
     *saved = 0;
+}
+
+void shared_memory::reset_for_test()
+{
+    cursor = 0;
+    *saved = 0;
+}
+
+void shared_memory::clear_coverage(std::size_t bytes)
+{
+    if (memory == nullptr)
+        return;
+
+    const std::size_t header_size = sizeof(metadata_header);
+    const std::size_t capacity =
+        get_size() > header_size ? get_size() - header_size : 0;
+    const std::size_t count = std::min(bytes, capacity);
+
+    memset(coverage_ptr(), 0, count);
 }
 
 void shared_memory::map_region()

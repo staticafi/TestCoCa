@@ -11,6 +11,11 @@ void write_result_json(const std::string& filename, const test_result& result)
     float coverage = std::round(result.score * 10000.0f) / 10000.0f;
 
     root.put("coverage", coverage);
+    root.put("time_limit_reached", result.time_limit_reached);
+    root.put("elapsed_ms", result.elapsed_ms);
+    root.put("tests_executed", result.tests_executed);
+    root.put("tests_skipped", result.tests_skipped);
+    root.put("stop_reason", result.stop_reason);
 
     boost::property_tree::ptree coverage_node;
     for (const auto& [key, value] : result.branch_coverage) {
