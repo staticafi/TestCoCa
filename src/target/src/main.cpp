@@ -7,7 +7,7 @@
 extern "C" {
     extern uint32_t __testcoca_cond_br_count __attribute__((weak));
     extern uint32_t __testcoca_goal_count __attribute__((weak));
-    void __testcoca_original_main();
+    void __testcoca_original_main(int argc, char** argv);
 }
 
 namespace instrumentation {
@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
 
     *target->shared_memory.saved_cursor() = sizeof(*header);
 
-    __testcoca_original_main();
+    __testcoca_original_main(argc, argv);
 
     return 0;
 }

@@ -28,7 +28,7 @@ private:
                                           IRunAnalyzer& analyzer,
                                           const std::vector<size_t>& waves);
     void                    write_test_input(connection::shared_memory& shm,
-                                             const TestBuffer& test);
+                                             const TestDirParser::test_case& test);
     test_result             collect_results(IRunAnalyzer& analyzer) const;
     void                    report_results(const test_result& result, TestType test_type) const;
 

@@ -1,0 +1,11 @@
+{
+    "test-case": {
+        "meta": {
+            "name": "alpha_flag",
+            "description": "Take the early exit selected by --alpha"
+        },
+        "cli": {
+            "arg": ["--alpha"]
+        }
+    }
+}

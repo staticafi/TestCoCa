@@ -1,0 +1,16 @@
+{
+    "test-case": {
+        "meta": {
+            "name": "other_positive",
+            "description": "Same positive nondet value, but a different CLI flag changes coverage"
+        },
+        "cli": {
+            "arg": ["--other"]
+        },
+        "nondet": {
+            "value": [
+                { "value": 5 }
+            ]
+        }
+    }
+}

@@ -33,6 +33,7 @@ void test_runner::run()
     auto time_limit = boost::lexical_cast<size_t>(options_->value("max_exec_milliseconds"));
     auto waves = calculate_waves(time_limit, tests.size());
 
+    // TODO take into account the overhead time
     execute_waves(*executor, tests, *analyzer, waves);
 
     auto results = collect_results(*analyzer);
@@ -148,7 +149,7 @@ void test_runner::execute_waves(connection::target_executor& executor,
         for (auto it = tests.begin(); it != tests.end();) {
             write_test_input(executor.get_shared_memory(), *it);
 
-            executor.execute_target();
+            executor.execute_target(it->command_line_args);
 
             analyzer.add_execution(executor.get_shared_memory());
 
@@ -168,15 +169,16 @@ void test_runner::execute_waves(connection::target_executor& executor,
 }
 
 void test_runner::write_test_input(connection::shared_memory& shm,
-                                    const TestBuffer& test)
+                                    const TestDirParser::test_case& test)
 {
-    uint64_t byte_count = test.byte_count();
+    const auto& input = test.input;
+    uint64_t byte_count = input.byte_count();
 
     shm.clear();
     shm << (uint16_t)max_exec_megabytes_;
     shm << byte_count;
-    shm << test.input_count();
-    shm.accept_bytes(test.data(), byte_count);
+    shm << input.input_count();
+    shm.accept_bytes(input.data(), byte_count);
 }
 
 test_result test_runner::collect_results(IRunAnalyzer& analyzer) const

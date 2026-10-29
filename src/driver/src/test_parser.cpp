@@ -1,5 +1,6 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <driver/test_parser.hpp>
 #include <filesystem>
@@ -48,19 +49,27 @@ namespace TestDirParser {
 tests parse_dir(const std::string &test_dir)
 {
     bool has_metadata = false;
+    bool has_xml_tests = false;
     tests tests;
 
     for (const auto& file : std::filesystem::recursive_directory_iterator(test_dir)) {
-        if (file.is_regular_file() && file.path().extension() == ".xml") {
-            if (!has_metadata && file.path().filename().string() == "metadata.xml") {
+        if (!file.is_regular_file())
+            continue;
+
+        if (file.path().extension() == ".xml") {
+            if (file.path().filename().string() == "metadata.xml") {
                 has_metadata = true;
                 continue;
             }
+            has_xml_tests = true;
+            tests.emplace(parse_test(file.path()));
+        } else if (file.path().extension() == ".json") {
             tests.emplace(parse_test(file.path()));
         }
     }
 
-    if (!has_metadata) throw std::runtime_error("Test-suite does not contain metadata.xml file");
+    if (has_xml_tests && !has_metadata)
+        throw std::runtime_error("Test-suite does not contain metadata.xml file");
 
     return tests;
 }
@@ -92,7 +101,28 @@ std::string hex_to_dec_str(const std::string& hex_str) {
     return num.str();
 }
 
+std::string normalize_value(std::string data) {
+    boost::trim(data);
+
+    if (data.length() == 3
+        && ((data[0] == '\'' && data[2] == '\'')
+            || (data[0] == '\"' && data[2] == '\"'))) {
+        data = std::to_string(data[1]);
+    }
+
+    if (data.starts_with("0x")) {
+        data = hex_to_dec_str(data);
+    }
+
+    return data;
+}
+
 void write_untyped(TestBuffer& buffer, const std::string& value_str) {
+    if (value_str.empty()) {
+        buffer.write(0, type_of_input_bits::UINT8);
+        return;
+    }
+
     if (value_str[0] == '-') {
         try {
             int16_t val = boost::lexical_cast<int16_t>(value_str);
@@ -214,7 +244,7 @@ void write_typed(TestBuffer& buffer, const std::string& type_str,
     write_untyped(buffer, value_str);
 }
 
-TestBuffer parse_test(const std::filesystem::path& test_path)
+test_case parse_xml_test(const std::filesystem::path& test_path)
 {
     boost::property_tree::ptree pt;
 
@@ -224,13 +254,12 @@ TestBuffer parse_test(const std::filesystem::path& test_path)
         std::cout << e.what() << std::endl;
     }
 
-    TestBuffer buffer;
-    uint64_t input_count = 0;
+    test_case test;
 
     const auto& testcase = pt.get_child_optional("testcase");
 
     if (!testcase) {
-        return buffer;
+        return test;
     }
 
     for (const auto& [name, node] : *testcase) {
@@ -238,27 +267,89 @@ TestBuffer parse_test(const std::filesystem::path& test_path)
 
         auto type_str = node.get<std::string>("<xmlattr>.type", "");
 
-        auto data = node.data();
-
-        boost::trim(data);
-
-        if (data.length() == 3 && ( data[0] == '\'' && data[2]== '\'') || ( data[0] == '\"' && data[2]== '\"')) {
-            data = std::to_string(data[1]);
-        }
-
-        if (data.starts_with("0x")) {
-            data = hex_to_dec_str(data);
-        }
+        auto data = normalize_value(node.data());
 
         if (type_str.empty()) {
-            write_untyped(buffer, data);
+            write_untyped(test.input, data);
         } else {
-            write_typed(buffer, type_str, data);
+            write_typed(test.input, type_str, data);
         }
-
-        ++input_count;
     }
 
-    return buffer;
+    return test;
 }
-}  // namespace TestParser
+
+test_case parse_json_test(const std::filesystem::path& test_path)
+{
+    boost::property_tree::ptree pt;
+
+    try {
+        read_json(test_path, pt);
+    } catch (const boost::property_tree::json_parser::json_parser_error& e) {
+        std::cout << e.what() << std::endl;
+    }
+
+    test_case test;
+
+    const auto& testcase = pt.get_child_optional("test-case");
+
+    if (!testcase) {
+        std::cout << "Failed to find 'test-case' object in "
+                  << test_path << std::endl;
+        return test;
+    }
+
+    if (const auto& cli = testcase->get_child_optional("cli")) {
+        if (const auto& args = cli->get_child_optional("arg")) {
+            if (!args->empty()) {
+                for (const auto& [name, node] : *args) {
+                    test.command_line_args.push_back(node.data());
+                }
+            } else if (!args->data().empty()) {
+                test.command_line_args.push_back(args->data());
+            }
+        }
+    }
+
+    if (const auto& nondet = testcase->get_child_optional("nondet")) {
+        if (const auto& values = nondet->get_child_optional("value")) {
+            for (const auto& [name, node] : *values) {
+                std::string value;
+                std::string type;
+
+                if (const auto& explicit_value = node.get_optional<std::string>("value")) {
+                    value = *explicit_value;
+                    if (const auto& explicit_type = node.get_optional<std::string>("type")) {
+                        type = *explicit_type;
+                    }
+                } else {
+                    value = node.data();
+                }
+
+                if (value.empty()) {
+                    continue;
+                }
+
+                value = normalize_value(value);
+                boost::trim(type);
+
+                if (type.empty()) {
+                    write_untyped(test.input, value);
+                } else {
+                    write_typed(test.input, type, value);
+                }
+            }
+        }
+    }
+
+    return test;
+}
+
+test_case parse_test(const std::filesystem::path& test_path)
+{
+    if (test_path.extension() == ".json") {
+        return parse_json_test(test_path);
+    }
+    return parse_xml_test(test_path);
+}
+}  // namespace TestDirParser

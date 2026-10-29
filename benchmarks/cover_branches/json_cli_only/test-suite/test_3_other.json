@@ -1,0 +1,11 @@
+{
+    "test-case": {
+        "meta": {
+            "name": "no_known_flag",
+            "description": "Neither branch is selected"
+        },
+        "cli": {
+            "arg": ["--other"]
+        }
+    }
+}

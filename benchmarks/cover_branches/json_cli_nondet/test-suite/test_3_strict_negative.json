@@ -1,0 +1,16 @@
+{
+    "test-case": {
+        "meta": {
+            "name": "strict_negative",
+            "description": "Strict flag with negative nondet value"
+        },
+        "cli": {
+            "arg": ["--strict"]
+        },
+        "nondet": {
+            "value": [
+                { "value": -5 }
+            ]
+        }
+    }
+}

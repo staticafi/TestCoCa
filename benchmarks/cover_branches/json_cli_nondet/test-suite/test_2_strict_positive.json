@@ -1,0 +1,16 @@
+{
+    "test-case": {
+        "meta": {
+            "name": "strict_positive",
+            "description": "Strict flag with positive nondet value"
+        },
+        "cli": {
+            "arg": ["--strict"]
+        },
+        "nondet": {
+            "value": [
+                { "value": 5, "type": "int" }
+            ]
+        }
+    }
+}

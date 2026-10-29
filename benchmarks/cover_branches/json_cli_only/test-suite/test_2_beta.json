@@ -1,0 +1,11 @@
+{
+    "test-case": {
+        "meta": {
+            "name": "beta_flag",
+            "description": "Take the branch selected by --beta"
+        },
+        "cli": {
+            "arg": ["--beta"]
+        }
+    }
+}

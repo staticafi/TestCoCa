@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <boost/functional/hash.hpp>
 #include <boost/unordered_set.hpp>
 
 #include "target/instrumentation_types.hpp"
@@ -29,9 +30,27 @@ public:
 };
 
 namespace TestDirParser {
-    using tests = boost::unordered_set<TestBuffer>;
+struct test_case {
+    TestBuffer input;
+    std::vector<std::string> command_line_args;
 
-    tests parse_dir(const std::string& test_dir);
+    bool operator==(const test_case& other) const {
+        return input == other.input && command_line_args == other.command_line_args;
+    }
 
-    TestBuffer parse_test(const std::filesystem::path& test_path);
+    friend size_t hash_value(const test_case& test) {
+        size_t seed = hash_value(test.input);
+        boost::hash_combine(
+            seed,
+            boost::hash_range(test.command_line_args.begin(),
+                              test.command_line_args.end()));
+        return seed;
+    }
+};
+
+using tests = boost::unordered_set<test_case>;
+
+tests parse_dir(const std::string& test_dir);
+
+test_case parse_test(const std::filesystem::path& test_path);
 }

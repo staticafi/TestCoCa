@@ -38,10 +38,11 @@ void target_executor::set_timeout(std::size_t const timeout_ms_)
 }
 
 
-void target_executor::execute_target()
+void target_executor::execute_target(const std::vector<std::string>& args)
 {
     using namespace std::chrono_literals;
-    bp::child target = bp::child(target_invocation, bp::std_out > stdout, bp::std_err > stderr);
+    bp::child target = bp::child(target_invocation, bp::args(args),
+                                 bp::std_out > stdout, bp::std_err > stderr);
     if (!wait_for_wrapper(target, std::chrono::milliseconds(timeout_ms))) {
         target.terminate();
 

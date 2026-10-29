@@ -281,9 +281,19 @@ class Benman:
                        f"Missing test_suite directory in {benchmark_dir}")
 
             if os.path.isdir(test_suite_dir):
-                metadata_path = os.path.join(test_suite_dir, "metadata.xml")
-                ASSUMPTION(os.path.isfile(metadata_path),
-                           f"Missing metadata.xml in test suite")
+                has_xml_tests = False
+                has_json_tests = False
+                for _, _, files in os.walk(test_suite_dir):
+                    for file_name in files:
+                        if file_name.endswith(".json"):
+                            has_json_tests = True
+                        elif file_name.endswith(".xml") and file_name != "metadata.xml":
+                            has_xml_tests = True
+
+                if has_xml_tests:
+                    metadata_path = os.path.join(test_suite_dir, "metadata.xml")
+                    ASSUMPTION(os.path.isfile(metadata_path),
+                               f"Missing metadata.xml in test suite")
 
             return c_file_path
 

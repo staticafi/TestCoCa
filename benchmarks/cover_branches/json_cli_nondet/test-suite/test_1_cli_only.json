@@ -1,0 +1,11 @@
+{
+    "test-case": {
+        "meta": {
+            "name": "cli_only_skip",
+            "description": "CLI flag takes an early exit and needs no nondet input"
+        },
+        "cli": {
+            "arg": ["--skip"]
+        }
+    }
+}

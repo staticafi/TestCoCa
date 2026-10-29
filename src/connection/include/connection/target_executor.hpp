@@ -2,6 +2,9 @@
 
 #include <connection/shared_memory.hpp>
 
+#include <string>
+#include <vector>
+
 namespace connection {
 
 struct target_executor {
@@ -9,7 +12,7 @@ struct target_executor {
 
     void init_shared_memory(std::size_t size);
     void set_timeout(std::size_t timeout_ms_);
-    void execute_target();
+    void execute_target(const std::vector<std::string>& args);
 
     shared_memory& get_shared_memory()
     {
