@@ -28,8 +28,9 @@ class Config:
         self.skip_building = False
         self.skip_testing = False
         self.options = []
-        self.goal_options = []
-        self.test_options = []
+        self.mode = None
+        self.error_func = ""
+        self.tools = {}
         self.ll_file = None
         self.instrumented_ll = None
         self.target_file = None
@@ -43,6 +44,34 @@ class Config:
 
     def command_timeout(self):
         return self.remaining_seconds(FINALISATION_RESERVE_SECONDS)
+
+
+# ---------------------------------------------------------------------------
+# Instrumenter pipeline model
+#
+# A coverage "mode" is described as data: an ordered list of stages plus the
+# exact driver flag binding. Each stage is either a process-backed tool (named
+# here, resolved through the tool table) or an in-process Python function. The
+# executor treats both identically, so adding a mode means adding a descriptor,
+# not editing dispatch logic.
+# ---------------------------------------------------------------------------
+
+class Stage:
+    def __init__(self, tool=None, args=None, func=None, stdout_to=None, sets=None):
+        self.tool = tool
+        self.args = args or []
+        self.func = func
+        self.stdout_to = stdout_to
+        # Mapping of context key -> context key applied after the stage runs,
+        # used to feed a rewritten source into the following compile stage.
+        self.sets = sets or {}
+
+
+class Instrumenter:
+    def __init__(self, name, stages, driver_args):
+        self.name = name
+        self.stages = stages
+        self.driver_args = driver_args
 
 
 def run_process(command, timeout=None, capture_output=False):
@@ -102,8 +131,6 @@ def transform_goals(input_file):
             else:
                 new_content.append(line)
 
-        #new_content.insert(0, f"const int __testcoca_goal_count = {label_count};\n")
-
         with open(input_file, 'w') as f:
             f.writelines(new_content)
 
@@ -113,111 +140,142 @@ def transform_goals(input_file):
         return False
 
 
-def instrument(config):
-    cmd = ["clang"] + (["-m32"] if config.use_m32 else []) + [
-        "-O0", "-S", "-emit-llvm",
-        "-Wno-everything", "-fbracket-depth=1024",
-        config.input_file, "-o", config.ll_file
-    ]
-
-    if not config.silent: print("Compiling C to LLVM...")
-    if not execute_command(cmd, config.command_timeout()):
-        print(f"Compilation failed: {config.input_file}")
-        return False
-
-    cmd = [os.path.join(config.self_dir, "tools", "@IR_INSTRUMENTER_FILE@")] + config.goal_options + [
-        "--input", config.ll_file, "--output", config.instrumented_ll
-    ]
-
-    if not config.silent: print("Instrumenting LLVM...")
-    if not execute_command(cmd, config.command_timeout()):
-        print(f"Instrumentation failed: {config.ll_file}")
-        return False
-    return True
+def stage_transform_goals(ctx):
+    return transform_goals(ctx["rewritten_c"])
 
 
-def instrument_testcomp(config):
-    cmd = [os.path.join(config.self_dir, "label-adder"),
-            "--labels-branching-only",
-            "--labels-switch-only",
-            "--labels-ternary-only",
-            config.input_file
-    ]
+# Reusable stages. "src_c" is the C source currently flowing through the
+# pipeline: it starts as the user's input and is replaced whenever a stage
+# rewrites the source.
+CLANG_EMIT_LL = Stage(tool="clang", args=[
+    "-O0", "-S", "-emit-llvm",
+    "-Wno-everything", "-fbracket-depth=1024",
+    "{cc_arch}", "{src_c}", "-o", "{ll}",
+])
+AST_REWRITE = Stage(
+    tool="ast_instrumenter",
+    args=["{src_c}", "{rewritten_c}"],
+    sets={"src_c": "rewritten_c"},
+)
+LABEL_ADDER = Stage(
+    tool="label_adder",
+    args=["--labels-branching-only", "--labels-switch-only",
+          "--labels-ternary-only", "{src_c}"],
+    stdout_to="{rewritten_c}",
+    sets={"src_c": "rewritten_c"},
+)
+TRANSFORM_GOALS = Stage(func=stage_transform_goals)
+IR_BRANCH = Stage(tool="ir_instrumenter", args=[
+    "--inst_br", "--input", "{ll}", "--output", "{instrumented_ll}",
+])
+IR_GOALS = Stage(tool="ir_instrumenter", args=[
+    "--input", "{ll}", "--output", "{instrumented_ll}", "--inst_goals",
+])
+IR_RENAME_ONLY = Stage(tool="ir_instrumenter", args=[
+    "--input", "{ll}", "--output", "{instrumented_ll}",
+])
+IR_ERROR = Stage(tool="ir_instrumenter", args=[
+    "--inst_err", "{error_func}", "--input", "{ll}", "--output", "{instrumented_ll}",
+])
 
-    if not config.silent: print("Adding labels...")
-
-    return_code, stdout, _ = run_process(cmd, config.command_timeout(), capture_output=True)
-    if return_code != 0:
-        print(f"Adding labels failed: {config.input_file}")
-        return False
-
-    inst_c_file = config.instrumented_ll.replace('.ll', '.c')
-    with open(inst_c_file, 'w') as f:
-        f.write(stdout or "")
-
-    transform_goals(inst_c_file)
-
-    if not config.silent: print("Transforming labes to function calls...")
-
-    compile_cmd = ["clang"] + (["-m32"] if config.use_m32 else []) + [
-        "-O0", "-S", "-emit-llvm",
-        "-Wno-everything", "-fbracket-depth=1024",
-        inst_c_file, "-o", config.ll_file
-    ]
-
-    if not config.silent: print("Compiling C to LLVM...")
-
-    if not execute_command(compile_cmd, config.command_timeout()):
-        print(f"Failed to compile instrumented C code to LLVM: {inst_c_file}")
-        return False
-
-    cmd = [os.path.join(config.self_dir, "tools", "@IR_INSTRUMENTER_FILE@")] + [
-        "--input", config.ll_file, "--output", config.instrumented_ll, "--inst_goals"
-    ]
-
-    if not config.silent: print("Instrumenting LLVM...")
-
-    if not execute_command(cmd, config.command_timeout()):
-        print(f"Instrumentation failed: {config.ll_file}")
-        return False
-
-    return True
+INSTRUMENTERS = {
+    "branch": Instrumenter(
+        "branch",
+        [CLANG_EMIT_LL, IR_BRANCH],
+        ["--goal", "coverage"],
+    ),
+    "testcomp": Instrumenter(
+        "testcomp",
+        [LABEL_ADDER, TRANSFORM_GOALS, CLANG_EMIT_LL, IR_GOALS],
+        ["--testcomp", "--goal", "coverage"],
+    ),
+    "decision": Instrumenter(
+        "decision",
+        [AST_REWRITE, CLANG_EMIT_LL, IR_RENAME_ONLY],
+        ["--testcomp", "--goal", "coverage"],
+    ),
+    "error": Instrumenter(
+        "error",
+        [CLANG_EMIT_LL, IR_ERROR],
+        ["--goal", "call"],
+    ),
+}
 
 
-def instrument_decision_coverage(config):
-    base = os.path.splitext(os.path.basename(config.input_file))[0]
-    rewritten_c = os.path.join(config.output_dir, base + "_decisions.c")
+def resolve_tools(self_dir):
+    return {
+        "clang": "clang",
+        "clang++": "clang++",
+        "ir_instrumenter": os.path.join(self_dir, "tools", "@IR_INSTRUMENTER_FILE@"),
+        "ast_instrumenter": os.path.join(self_dir, "tools", "@AST_INSTRUMENTER_FILE@"),
+        "driver": os.path.join(self_dir, "tools", "@DRIVER_FILE@"),
+        "label_adder": os.path.join(self_dir, "label-adder"),
+    }
 
-    cmd = [os.path.join(config.self_dir, "tools", "@AST_INSTRUMENTER_FILE@"),
-           config.input_file, rewritten_c]
 
-    if not config.silent: print("Instrumenting decisions (AST)...")
+def build_context(config):
+    input_c = config.input_file
+    base = os.path.splitext(os.path.basename(input_c))[0]
+    return {
+        "src_c": input_c,
+        "rewritten_c": os.path.join(config.output_dir, base + "_rewritten.c"),
+        "ll": config.ll_file,
+        "instrumented_ll": config.instrumented_ll,
+        "target": config.target_file,
+        "output_dir": config.output_dir,
+        "base": base,
+        "cc_arch": ["-m32"] if config.use_m32 else [],
+        "error_func": config.error_func,
+        "timeout": config.command_timeout(),
+    }
 
-    if not execute_command(cmd, config.command_timeout()):
-        print(f"AST instrumentation failed: {config.input_file}")
-        return False
 
-    compile_cmd = ["clang"] + (["-m32"] if config.use_m32 else []) + [
-        "-O0", "-S", "-emit-llvm",
-        "-Wno-everything", "-fbracket-depth=1024",
-        rewritten_c, "-o", config.ll_file
-    ]
+def render_args(tokens, ctx):
+    rendered = []
+    for token in tokens:
+        if isinstance(token, list):
+            rendered.extend(str(item) for item in token)
+            continue
+        if not isinstance(token, str):
+            rendered.append(str(token))
+            continue
 
-    if not config.silent: print("Compiling C to LLVM...")
+        whole = re.fullmatch(r"\{(\w+)\}", token)
+        if whole and isinstance(ctx.get(whole.group(1)), list):
+            rendered.extend(str(item) for item in ctx[whole.group(1)])
+            continue
 
-    if not execute_command(compile_cmd, config.command_timeout()):
-        print(f"Failed to compile instrumented C code to LLVM: {rewritten_c}")
-        return False
+        rendered.append(
+            re.sub(r"\{(\w+)\}", lambda m: str(ctx[m.group(1)]), token))
+    return rendered
 
-    cmd = [os.path.join(config.self_dir, "tools", "@IR_INSTRUMENTER_FILE@"),
-           "--input", config.ll_file, "--output", config.instrumented_ll]
 
-    if not config.silent: print("Instrumenting LLVM...")
+def run_stage(stage, ctx, tools):
+    if stage.func is not None:
+        return stage.func(ctx)
 
-    if not execute_command(cmd, config.command_timeout()):
-        print(f"Instrumentation failed: {config.ll_file}")
-        return False
+    cmd = [tools[stage.tool]] + render_args(stage.args, ctx)
+    timeout = ctx.get("timeout")
 
+    if stage.stdout_to is not None:
+        output_path = render_args([stage.stdout_to], ctx)[0]
+        return_code, stdout, _ = run_process(cmd, timeout, capture_output=True)
+        if return_code != 0:
+            print(f"Command failed: {' '.join(cmd)}")
+            return False
+        with open(output_path, 'w') as f:
+            f.write(stdout or "")
+        return True
+
+    return execute_command(cmd, timeout)
+
+
+def run_pipeline(stages, ctx, tools):
+    for stage in stages:
+        if not run_stage(stage, ctx, tools):
+            return False
+        for dest, source in stage.sets.items():
+            ctx[dest] = ctx[source]
     return True
 
 
@@ -242,15 +300,14 @@ def build(config):
         run_process(clang_tidy_cmd, config.command_timeout(), capture_output=True)
         config.input_file = formatted_path
 
-    if config.decision_coverage:
-        if not instrument_decision_coverage(config):
-            return False
-    elif config.testcomp:
-        if not instrument_testcomp(config):
-            return False
-    else:
-        if not instrument(config):
-            return False
+    instrumenter = INSTRUMENTERS[config.mode]
+    ctx = build_context(config)
+
+    if not config.silent:
+        print(f"Instrumenting ({instrumenter.name})...")
+    if not run_pipeline(instrumenter.stages, ctx, config.tools):
+        print(f"Instrumentation failed: {config.input_file}")
+        return False
 
     target_libs = [
                       os.path.join(config.self_dir, "lib32" if config.use_m32 else "lib", lib)
@@ -283,14 +340,14 @@ def run_tests(config, remaining_ms):
         target = config.target_file
 
     cmd = ([
-               os.path.join(config.self_dir, "tools", "@DRIVER_FILE@"),
+               config.tools["driver"],
                "--path_to_target", target,
                "--test_dir", config.test_suite,
                "--output_dir", config.output_dir,
                "--max_exec_milliseconds", str(remaining_ms),
            ]
-           + (["--testcomp"] if (config.testcomp or config.decision_coverage) else [])
-           + config.test_options + config.options)
+           + INSTRUMENTERS[config.mode].driver_args
+           + config.options)
 
     if not config.silent: print("Running tests...")
     return execute_command(cmd, remaining_ms / 1000.0 + DRIVER_GRACE_SECONDS)
@@ -299,31 +356,31 @@ def run_tests(config, remaining_ms):
 def parse_coverage_goal(goal_file):
     if not goal_file:
         print("Using default branch coverage")
-        return ["--inst_br"], ["--goal", "coverage"]
+        return "branch", ""
 
     try:
         with open(goal_file, 'r') as f:
             content = f.read().strip()
     except Exception as e:
         print(f"Error reading goal file: {str(e)}")
-        return [], []
+        return None, ""
 
     # taken from https://gitlab.com/sosy-lab/software/test-suite-validator/-/blob/main/suite_validation/__init__.py
     pattern = r"COVER\s*\(\s*init\s*\(\s*main\s*\(\s*\)\s*\)\s*,\s*FQL\s*\(COVER\s+EDGES\s*\((.*)\)\s*\)\s*\)"
     match = re.search(pattern, content)
     if not match:
         print("Invalid coverage goal specification")
-        return [], []
+        return None, ""
 
     goal_type = match.group(1).strip()
     if goal_type.startswith("@CALL"):
         err_func = goal_type[6:-1]
-        return ["--inst_err", err_func], ["--goal", "call"]
+        return "error", err_func
     elif goal_type == "@DECISIONEDGE":
-        return ["--inst_br"], ["--goal", "coverage"]
+        return "branch", ""
 
     print(f"Unsupported coverage type: {goal_type}")
-    return [], []
+    return None, ""
 
 
 def prepare_test_suite(test_suite, output_dir):
@@ -377,10 +434,27 @@ def print_help(self_dir):
     print("--m32                  Compile for 32-bit architecture")
 
 
+def select_mode(config, goal_mode):
+    if goal_mode == "error":
+        if config.testcomp or config.decision_coverage:
+            print("WARNING: Ignoring coverage-mode flags, not applicable to cover-error category")
+        return "error"
+
+    if config.testcomp and config.decision_coverage:
+        print("--testcomp and --decision-coverage are mutually exclusive")
+        return None
+    if config.testcomp:
+        return "testcomp"
+    if config.decision_coverage:
+        return "decision"
+    return goal_mode
+
+
 def main():
     start_time = time.monotonic()
     self_dir = os.path.dirname(os.path.abspath(__file__))
     config = Config(self_dir)
+    config.tools = resolve_tools(self_dir)
     goal_file = None
 
     i = 1
@@ -436,24 +510,19 @@ def main():
         print("Missing or invalid input file")
         return 1
 
-    if config.testcomp and config.decision_coverage:
-        print("--testcomp and --decision-coverage are mutually exclusive")
+    goal_mode, config.error_func = parse_coverage_goal(goal_file)
+    if goal_mode is None:
+        print("Invalid coverage goal configuration")
+        return 1
+
+    config.mode = select_mode(config, goal_mode)
+    if config.mode is None:
         return 1
 
     base = os.path.splitext(os.path.basename(config.input_file))[0]
     config.ll_file = os.path.join(config.output_dir, base + ".ll")
     config.instrumented_ll = os.path.join(config.output_dir, base + "_instrumented.ll")
     config.target_file = os.path.join(config.output_dir, base + "_target")
-
-    config.goal_options, config.test_options = parse_coverage_goal(goal_file)
-    if not config.goal_options or not config.test_options:
-        print("Invalid coverage goal configuration")
-        return 1
-
-    if config.goal_options[0] == "--inst_err":
-        print("WARNING: Ignoring coverage-mode flags, not applicable to cover-error category")
-        config.testcomp = False
-        config.decision_coverage = False
 
     os.makedirs(config.output_dir, exist_ok=True)
 
