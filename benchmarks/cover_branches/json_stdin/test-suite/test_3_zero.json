@@ -1,0 +1,9 @@
+{
+    "test-case": {
+        "meta": {
+            "name": "stdin_zero",
+            "description": "Read zero from standard input"
+        },
+        "stdin": "0\n"
+    }
+}

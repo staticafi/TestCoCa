@@ -4,6 +4,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -24,7 +25,9 @@ struct target_executor {
 
     void init_shared_memory(std::size_t size);
     void set_timeout(std::size_t timeout_ms_);
-    execution_result execute_target(const std::vector<std::string>& args);
+    execution_result execute_target(
+        const std::vector<std::string>& args,
+        const std::optional<std::string>& stdin_data = std::nullopt);
 
     shared_memory& get_shared_memory()
     {

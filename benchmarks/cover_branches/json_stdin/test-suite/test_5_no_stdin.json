@@ -1,0 +1,8 @@
+{
+    "test-case": {
+        "meta": {
+            "name": "stdin_absent",
+            "description": "Without a stdin field the target reads from /dev/null"
+        }
+    }
+}

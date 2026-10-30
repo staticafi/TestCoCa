@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <string>
 #include <vector>
 #include <filesystem>
@@ -33,9 +34,12 @@ namespace TestDirParser {
 struct test_case {
     TestBuffer input;
     std::vector<std::string> command_line_args;
+    std::optional<std::string> stdin_data;
 
     bool operator==(const test_case& other) const {
-        return input == other.input && command_line_args == other.command_line_args;
+        return input == other.input
+            && command_line_args == other.command_line_args
+            && stdin_data == other.stdin_data;
     }
 
     friend size_t hash_value(const test_case& test) {
@@ -44,6 +48,13 @@ struct test_case {
             seed,
             boost::hash_range(test.command_line_args.begin(),
                               test.command_line_args.end()));
+        boost::hash_combine(seed, test.stdin_data.has_value());
+        if (test.stdin_data) {
+            boost::hash_combine(
+                seed,
+                boost::hash_range(test.stdin_data->begin(),
+                                  test.stdin_data->end()));
+        }
         return seed;
     }
 };

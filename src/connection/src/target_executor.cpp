@@ -1,7 +1,10 @@
 #include <boost/process.hpp>
 #include <connection/target_executor.hpp>
 #include <chrono>
+#include <cstdio>
 #include <iostream>
+#include <memory>
+#include <stdexcept>
 
 namespace bp = boost::process;
 using namespace instrumentation;
@@ -39,7 +42,9 @@ void target_executor::set_timeout(std::size_t const timeout_ms_)
     timeout_ms = timeout_ms_;
 }
 
-execution_result target_executor::execute_target(const std::vector<std::string>& args)
+execution_result target_executor::execute_target(
+    const std::vector<std::string>& args,
+    const std::optional<std::string>& stdin_data)
 {
     using namespace std::chrono_literals;
 
@@ -48,9 +53,35 @@ execution_result target_executor::execute_target(const std::vector<std::string>&
 
     try {
         bp::group group;
-        bp::child target = bp::child(target_invocation, bp::args(args),
-                                     bp::std_out > stdout, bp::std_err > stderr,
-                                     group);
+        bp::child target;
+
+        if (stdin_data) {
+            std::unique_ptr<FILE, decltype(&std::fclose)> stdin_file(
+                std::tmpfile(), &std::fclose);
+            if (!stdin_file) {
+                throw std::runtime_error("Failed to create temporary stdin file");
+            }
+
+            if (!stdin_data->empty()
+                && std::fwrite(stdin_data->data(), 1, stdin_data->size(),
+                               stdin_file.get()) != stdin_data->size()) {
+                throw std::runtime_error("Failed to write temporary stdin file");
+            }
+
+            std::rewind(stdin_file.get());
+
+            FILE* stdin_fp = stdin_file.get();
+            target = bp::child(target_invocation, bp::args(args),
+                               bp::std_in < stdin_fp,
+                               bp::std_out > stdout, bp::std_err > stderr,
+                               group);
+        } else {
+            target = bp::child(target_invocation, bp::args(args),
+                               bp::std_in < bp::null,
+                               bp::std_out > stdout, bp::std_err > stderr,
+                               group);
+        }
+
         result.started = true;
 
         if (!wait_for_wrapper(target, std::chrono::milliseconds(timeout_ms))) {

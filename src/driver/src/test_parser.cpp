@@ -311,6 +311,15 @@ test_case parse_json_test(const std::filesystem::path& test_path)
         }
     }
 
+    if (const auto& stdin_node = testcase->get_child_optional("stdin")) {
+        if (stdin_node->empty()) {
+            test.stdin_data = stdin_node->data();
+        } else {
+            std::cout << "Unsupported 'stdin' value in " << test_path
+                      << ": expected a JSON string." << std::endl;
+        }
+    }
+
     if (const auto& nondet = testcase->get_child_optional("nondet")) {
         if (const auto& values = nondet->get_child_optional("value")) {
             for (const auto& [name, node] : *values) {

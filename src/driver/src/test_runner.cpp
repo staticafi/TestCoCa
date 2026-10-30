@@ -118,8 +118,6 @@ void test_runner::prepare_output_directory()
         for (const auto& entry : std::filesystem::directory_iterator(output_dir_ / "test-suite"))
             std::filesystem::remove(entry);
     }
-    if (std::filesystem::is_directory(output_dir_ / "progress_recording"))
-        std::filesystem::remove_all(output_dir_ / "progress_recording");
 }
 
 void test_runner::configure_io_limits() const
@@ -185,7 +183,8 @@ test_runner::execution_summary test_runner::execute_waves(
             executor.set_timeout(std::min(plan->timeout_ms, usable));
             write_test_input(executor.get_shared_memory(), *it);
 
-            const auto execution = executor.execute_target(it->command_line_args);
+            const auto execution =
+                executor.execute_target(it->command_line_args, it->stdin_data);
 
             if (execution.started && execution.header_valid)
                 analyzer.add_execution(executor.get_shared_memory());

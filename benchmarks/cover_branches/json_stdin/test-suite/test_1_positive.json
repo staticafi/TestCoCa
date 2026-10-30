@@ -1,0 +1,9 @@
+{
+    "test-case": {
+        "meta": {
+            "name": "stdin_positive",
+            "description": "Read a positive integer from standard input"
+        },
+        "stdin": "5\n"
+    }
+}
