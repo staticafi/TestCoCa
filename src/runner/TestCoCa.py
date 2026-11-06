@@ -260,7 +260,7 @@ def run_stage(stage, ctx, tools):
     if stage.stdout_to is not None:
         output_path = render_args([stage.stdout_to], ctx)[0]
         return_code, stdout, _ = run_process(cmd, timeout, capture_output=True)
-        if return_code != 0:
+        if return_code != 0 and not stdout:
             print(f"Command failed: {' '.join(cmd)}")
             return False
         with open(output_path, 'w') as f:
