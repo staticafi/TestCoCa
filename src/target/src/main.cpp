@@ -34,17 +34,23 @@ int main(int argc, char* argv[])
 
     auto* header = target->shared_memory.header();
 
-    header->cond_br_count = &__testcoca_cond_br_count != nullptr ? __testcoca_cond_br_count : (uint32_t) 0;
-    header->goal_count = &__testcoca_goal_count != nullptr ? __testcoca_goal_count : (uint32_t) 0;
+    const uint32_t cond_br_count =
+        &__testcoca_cond_br_count != nullptr ? __testcoca_cond_br_count : (uint32_t) 0;
+    const uint32_t goal_count =
+        &__testcoca_goal_count != nullptr ? __testcoca_goal_count : (uint32_t) 0;
+
+    const std::size_t coverage_bytes = std::max<std::size_t>(
+        (std::size_t)cond_br_count * sizeof(br_instr_coverage_info),
+        (std::size_t)goal_count);
+
+    target->shared_memory.clear_coverage(coverage_bytes);
+
+    header->cond_br_count = cond_br_count;
+    header->goal_count = goal_count;
     header->data_checksum = 0;
     header->termination = target_termination::normal;
     header->set_header_checksum();
 
-    const std::size_t coverage_bytes = std::max<std::size_t>(
-        (std::size_t)header->cond_br_count * sizeof(br_instr_coverage_info),
-        (std::size_t)header->goal_count);
-
-    target->shared_memory.clear_coverage(coverage_bytes);
     *target->shared_memory.saved_cursor() = sizeof(*header);
 
     __testcoca_original_main(argc, argv);

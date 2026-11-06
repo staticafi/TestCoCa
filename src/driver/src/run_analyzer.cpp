@@ -1,5 +1,6 @@
 #include "driver/run_analyzer.hpp"
 
+#include <cstddef>
 #include <iostream>
 #include <numeric>
 #include <boost/property_tree/json_parser.hpp>
@@ -21,13 +22,30 @@ public:
             br_instr_count = src.get_cond_br_count();
         } else if (br_instr_count != src.get_cond_br_count()) {
             std::cout << "WARNING: number of total reported br instructions differs between test runs" << std::endl;
+            return;
         }
 
         auto *cov = reinterpret_cast<instrumentation::br_instr_coverage_info *>(src.coverage_ptr());
 
+        const std::size_t region_size = src.get_size();
+        const std::size_t header_size = sizeof(connection::shared_memory::metadata_header);
+        const std::size_t max_entries = region_size > header_size
+            ? (region_size - header_size) / sizeof(instrumentation::br_instr_coverage_info)
+            : 0;
+
+        if (br_instr_count > max_entries) {
+            std::cout << "WARNING: br instruction count is outside shared memory limits, discarding execution" << std::endl;
+            return;
+        }
+
         checksum_t hash = 0;
 
-        for (auto *br_info = cov; br_info->id != 0; ++br_info) {
+        for (uint32_t i = 0; i < br_instr_count; ++i) {
+            auto *br_info = cov + i;
+
+            if (br_info->id == 0)
+                break;
+
             hash ^= ((uint64_t)br_info->id << 8) | br_info->coverage;
 
             if (br_info->id > br_instr_count || br_info->coverage > instrumentation::BOTH) {
@@ -43,7 +61,12 @@ public:
             return;
         }
 
-        for (auto *br_info = cov; br_info->id != 0; ++br_info) {
+        for (uint32_t i = 0; i < br_instr_count; ++i) {
+            auto *br_info = cov + i;
+
+            if (br_info->id == 0)
+                break;
+
             if (auto it = coverage.find(br_info->id); it != coverage.end()) {
                 if (it->second != instrumentation::BOTH &&
                     it->second != br_info->coverage) {
@@ -100,9 +123,20 @@ public:
 
         if (goal_count == 0) {
             goal_count = src.get_goal_count();
+            const std::size_t region_size = src.get_size();
+            const std::size_t header_size = sizeof(connection::shared_memory::metadata_header);
+            const std::size_t max_goals = region_size > header_size
+                ? region_size - header_size
+                : 0;
+            if (goal_count > max_goals) {
+                std::cout << "WARNING: goal count is outside shared memory limits, discarding execution" << std::endl;
+                goal_count = 0;
+                return;
+            }
             coverage.resize(goal_count);
         } else if (goal_count != src.get_goal_count()) {
             std::cout << "WARNING: number of total reported goals differs between test runs" << std::endl;
+            return;
         }
 
         auto *cov = src.coverage_ptr();
