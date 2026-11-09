@@ -1,12 +1,17 @@
+#if __has_include(<boost/process/v1.hpp>)
+#include <boost/process/v1.hpp>
+namespace bp = boost::process::v1;
+#else
 #include <boost/process.hpp>
+namespace bp = boost::process;
+#endif
+
 #include <connection/target_executor.hpp>
 #include <chrono>
 #include <cstdio>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
-
-namespace bp = boost::process;
 using namespace instrumentation;
 
 namespace connection {

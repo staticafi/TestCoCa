@@ -29,12 +29,13 @@ def help(self_dir):
     print("                       the source C files will be compiled for 32-bit machine (cpu).")
     print("                       Otherwise, all fizzer's modules will be built, i.e., for both")
     print("                       32-bit and 64-bit machine.")
+    print("  jobs <N>             Number of parallel build jobs. Default value is 4.")
     print("NOTE: It is assumed that 'Clang' and 'Ninja' are installed in the system.")
     print("      It is further assumed 'boost' and 'llvm' libraries are installed in 'vcpkg'")
     print("      package manager or directly in the system (not recommended option).")
     print("More information can be found in the ./README.md file.")
 
-def init(build_dir, build_config):
+def init(build_dir, build_config, install_dir):
     os.chdir(build_dir)
     _execute(
         [ "cmake",
@@ -42,13 +43,12 @@ def init(build_dir, build_config):
             "--no-warn-unused-cli",
             "-G Ninja",
             "-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE",
-            "-DCMAKE_C_COMPILER:FILEPATH=clang",
-            "-DCMAKE_CXX_COMPILER:FILEPATH=clang++",
+            "-DCMAKE_INSTALL_PREFIX:FILEPATH=" + install_dir,
             "-DCMAKE_BUILD_TYPE:STRING=" + build_config ]
         )
 
 
-def build(build_dir, build_config, use_m32):
+def build(build_dir, build_config, use_m32, install_dir, jobs):
     os.chdir(build_dir)
     _execute(
         [ "cmake",
@@ -57,11 +57,11 @@ def build(build_dir, build_config, use_m32):
             "-G Ninja",
             "-DBUILD_LIBS_32_BIT=" + ("No" if use_m32 is False else "Yes"),
             "-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE",
-            "-DCMAKE_C_COMPILER:FILEPATH=clang",
-            "-DCMAKE_CXX_COMPILER:FILEPATH=clang++",
+            "-DCMAKE_INSTALL_PREFIX:FILEPATH=" + install_dir,
             "-DCMAKE_BUILD_TYPE:STRING=" + build_config ]
         )
-    _execute(["cmake", "--build", ".", "--config", build_config, "--target", "install"])
+    _execute(["cmake", "--build", ".", "--parallel", str(jobs),
+              "--config", build_config, "--target", "install"])
 
 
 def main():
@@ -71,6 +71,7 @@ def main():
     build_config = "Release" # "Debug" "Release" "RelWithDebInfo"
     do_clean = False
     only_m32 = False
+    jobs = 4
 
     i = 1
     while (i < len(sys.argv)):
@@ -85,6 +86,11 @@ def main():
             do_clean = True
         elif arg == "--m32":
             only_m32 = True
+        elif arg in ("--jobs", "-j") and i+1 < len(sys.argv):
+            jobs = int(sys.argv[i+1])
+            if jobs < 1:
+                raise ValueError("--jobs expects a positive integer")
+            i += 1
         i += 1
 
     if do_clean is True:
@@ -96,11 +102,11 @@ def main():
     os.makedirs(install_dir, exist_ok=True)
     if not os.path.isdir(build_dir):
         os.makedirs(build_dir, exist_ok=True)
-        init(build_dir, build_config)
+        init(build_dir, build_config, install_dir)
 
-    build(build_dir, build_config, True)
+    build(build_dir, build_config, True, install_dir, jobs)
     if only_m32 is False:
-        build(build_dir, build_config, False)
+        build(build_dir, build_config, False, install_dir, jobs)
 
 
 if __name__ == "__main__":

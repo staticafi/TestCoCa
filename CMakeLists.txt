@@ -1,9 +1,13 @@
 cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
-project(TestCoCa)
+if(NOT DEFINED CMAKE_C_COMPILER)
+    find_program(CMAKE_C_COMPILER NAMES clang)
+endif()
+if(NOT DEFINED CMAKE_CXX_COMPILER)
+    find_program(CMAKE_CXX_COMPILER NAMES clang++)
+endif()
 
-set(CMAKE_C_COMPILER "/usr/bin/clang-18")
-set(CMAKE_CXX_COMPILER "/usr/bin/clang++-18")
+project(TestCoCa)
 
 macro(append_compiler_flags FLAGS)
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${FLAGS}")
@@ -90,10 +94,12 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 set(CMAKE_INSTALL_RPATH "./")
 
-set(3RD_INCLUDE_DIR "${CMAKE_TOOLCHAIN_FILE}/../../../installed/${VCPKG_TARGET_TRIPLET}/include")
-cmake_path(NORMAL_PATH 3RD_INCLUDE_DIR)
-include_directories(${3RD_INCLUDE_DIR})
-message("3rd includes directory = ${3RD_INCLUDE_DIR}")
+if(CMAKE_TOOLCHAIN_FILE AND VCPKG_TARGET_TRIPLET)
+    set(3RD_INCLUDE_DIR "${CMAKE_TOOLCHAIN_FILE}/../../../installed/${VCPKG_TARGET_TRIPLET}/include")
+    cmake_path(NORMAL_PATH 3RD_INCLUDE_DIR)
+    include_directories(${3RD_INCLUDE_DIR})
+    message("3rd includes directory = ${3RD_INCLUDE_DIR}")
+endif()
 message("Sources directory = ${PROJECT_SOURCE_DIR}/src")
 message("Install directory = ${CMAKE_INSTALL_PREFIX}")
 

@@ -289,7 +289,7 @@ class ConditionASTConsumer : public clang::ASTConsumer {
                          << output_path_ << "': " << error.message() << "\n";
             return;
         }
-        const clang::RewriteBuffer& buffer =
+        const auto& buffer =
             rewriter_.getEditBuffer(source_manager.getMainFileID());
         buffer.write(output);
     }
